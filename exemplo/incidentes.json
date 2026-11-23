@@ -1,0 +1,213 @@
+{
+  "exemplo": true,
+  "incidentes": [
+    {
+      "id": "20260714-1520-manual",
+      "linhas": [
+        "banco"
+      ],
+      "tipo": "fora",
+      "inicio": "2026-07-14T15:20:00Z",
+      "fim": "2026-07-14T16:05:00Z",
+      "origem": "manual",
+      "titulo": {
+        "pt-BR": "Falha ao carregar os dados dos talhões",
+        "es-PY": "Falla al cargar los datos de los lotes"
+      },
+      "atualizacoes": [
+        {
+          "em": "2026-07-14T15:20:00Z",
+          "estado": "investigando",
+          "texto": {
+            "pt-BR": "Estamos investigando uma falha ao carregar os dados dos talhões.",
+            "es-PY": "Estamos investigando una falla al cargar los datos de los lotes."
+          }
+        },
+        {
+          "em": "2026-07-14T16:05:00Z",
+          "estado": "resolvido",
+          "texto": {
+            "pt-BR": "A falha foi corrigida e os dados voltaram a carregar normalmente.",
+            "es-PY": "La falla fue corregida y los datos volvieron a cargar normalmente."
+          }
+        }
+      ]
+    },
+    {
+      "id": "20260920-1402-app",
+      "linhas": [
+        "app"
+      ],
+      "tipo": "degradado",
+      "inicio": "2026-09-20T14:02:00Z",
+      "fim": "2026-09-20T15:17:00Z",
+      "origem": "automatico",
+      "titulo": {
+        "pt-BR": "Instabilidade em Agronomy Center: aplicativo",
+        "es-PY": "Inestabilidad en Agronomy Center: aplicación"
+      },
+      "atualizacoes": [
+        {
+          "em": "2026-09-20T14:12:00Z",
+          "estado": "investigando",
+          "texto": {
+            "pt-BR": "Detectado automaticamente às 11:12.",
+            "es-PY": "Detectado automáticamente a las 11:12."
+          }
+        },
+        {
+          "em": "2026-09-20T15:22:00Z",
+          "estado": "resolvido",
+          "texto": {
+            "pt-BR": "O serviço voltou ao normal às 12:17.",
+            "es-PY": "El servicio volvió a la normalidad a las 12:17."
+          }
+        }
+      ]
+    },
+    {
+      "id": "20261015-1100-manual",
+      "linhas": [
+        "login"
+      ],
+      "tipo": "fora",
+      "inicio": "2026-10-15T11:00:00Z",
+      "fim": "2026-10-15T11:07:00Z",
+      "origem": "manual",
+      "titulo": {
+        "pt-BR": "Dificuldade para entrar nas contas",
+        "es-PY": "Dificultad para iniciar sesión en las cuentas"
+      },
+      "atualizacoes": [
+        {
+          "em": "2026-10-15T11:00:00Z",
+          "estado": "investigando",
+          "texto": {
+            "pt-BR": "Alguns usuários não conseguem entrar. Estamos investigando.",
+            "es-PY": "Algunos usuarios no logran iniciar sesión. Estamos investigando."
+          }
+        },
+        {
+          "em": "2026-10-15T11:04:00Z",
+          "estado": "monitorando",
+          "texto": {
+            "pt-BR": "A correção foi aplicada e estamos acompanhando.",
+            "es-PY": "La corrección fue aplicada y estamos acompañando."
+          }
+        },
+        {
+          "em": "2026-10-15T11:07:00Z",
+          "estado": "resolvido",
+          "texto": {
+            "pt-BR": "O login voltou a funcionar normalmente.",
+            "es-PY": "El inicio de sesión volvió a funcionar normalmente."
+          }
+        }
+      ]
+    },
+    {
+      "id": "20261102-1312-app",
+      "linhas": [
+        "app"
+      ],
+      "tipo": "fora",
+      "inicio": "2026-11-02T13:12:00Z",
+      "fim": "2026-11-02T14:02:00Z",
+      "origem": "automatico",
+      "titulo": {
+        "pt-BR": "Interrupção em Agronomy Center: aplicativo",
+        "es-PY": "Interrupción en Agronomy Center: aplicación"
+      },
+      "atualizacoes": [
+        {
+          "em": "2026-11-02T13:17:00Z",
+          "estado": "investigando",
+          "texto": {
+            "pt-BR": "Detectado automaticamente às 10:17.",
+            "es-PY": "Detectado automáticamente a las 10:17."
+          }
+        },
+        {
+          "em": "2026-11-02T13:30:00Z",
+          "estado": "identificado",
+          "texto": {
+            "pt-BR": "A causa foi identificada e a correção está sendo aplicada.",
+            "es-PY": "La causa fue identificada y la corrección se está aplicando."
+          }
+        },
+        {
+          "em": "2026-11-02T14:07:00Z",
+          "estado": "resolvido",
+          "texto": {
+            "pt-BR": "O serviço voltou ao normal às 11:02.",
+            "es-PY": "El servicio volvió a la normalidad a las 11:02."
+          }
+        }
+      ]
+    },
+    {
+      "id": "20261110-1230-manual",
+      "linhas": [
+        "satelite"
+      ],
+      "tipo": "degradado",
+      "inicio": "2026-11-10T12:30:00Z",
+      "fim": "2026-11-10T15:45:00Z",
+      "origem": "manual",
+      "titulo": {
+        "pt-BR": "Atraso na chegada de imagens novas",
+        "es-PY": "Retraso en la llegada de imágenes nuevas"
+      },
+      "atualizacoes": [
+        {
+          "em": "2026-11-10T12:30:00Z",
+          "estado": "investigando",
+          "texto": {
+            "pt-BR": "As imagens de satélite novas estão chegando com atraso. Estamos investigando.",
+            "es-PY": "Las imágenes satelitales nuevas están llegando con retraso. Estamos investigando."
+          }
+        },
+        {
+          "em": "2026-11-10T13:10:00Z",
+          "estado": "identificado",
+          "texto": {
+            "pt-BR": "O atraso vem da fila de processamento das imagens; a correção está em andamento.",
+            "es-PY": "El retraso viene de la cola de procesamiento de las imágenes; la corrección está en curso."
+          }
+        },
+        {
+          "em": "2026-11-10T15:45:00Z",
+          "estado": "resolvido",
+          "texto": {
+            "pt-BR": "As imagens voltaram a chegar no prazo normal.",
+            "es-PY": "Las imágenes volvieron a llegar en el plazo normal."
+          }
+        }
+      ]
+    },
+    {
+      "id": "20261123-1947-banco",
+      "linhas": [
+        "banco"
+      ],
+      "tipo": "degradado",
+      "inicio": "2026-11-23T19:47:00Z",
+      "fim": null,
+      "origem": "automatico",
+      "titulo": {
+        "pt-BR": "Instabilidade em Dados dos talhões (banco)",
+        "es-PY": "Inestabilidad en Datos de los lotes (base de datos)"
+      },
+      "atualizacoes": [
+        {
+          "em": "2026-11-23T19:57:00Z",
+          "estado": "investigando",
+          "texto": {
+            "pt-BR": "Detectado automaticamente às 16:57.",
+            "es-PY": "Detectado automáticamente a las 16:57."
+          }
+        }
+      ]
+    }
+  ]
+}

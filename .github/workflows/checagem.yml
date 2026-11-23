@@ -1,0 +1,92 @@
+name: Checagem
+
+on:
+  workflow_dispatch:
+  # Ligar quando o coordenador avisar.
+  # schedule:
+  #   - cron: '2-59/5 * * * *'
+
+permissions: {}
+
+concurrency:
+  group: dados
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  checar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      publicar: ${{ steps.checar.outputs.publicar }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Preparar o ramo dados
+        id: ramo
+        run: |
+          if git ls-remote --exit-code --heads origin dados > /dev/null; then
+            git fetch --no-tags origin +refs/heads/dados:refs/remotes/origin/dados
+            git worktree add --detach dados-ramo refs/remotes/origin/dados
+            echo "existe=true" >> "$GITHUB_OUTPUT"
+          else
+            # Ramo novo: começa vazio.
+            git worktree add --detach dados-ramo
+            git -C dados-ramo checkout -q --orphan dados-novo
+            git -C dados-ramo rm -rfq .
+            echo "existe=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checar
+        id: checar
+        run: node scripts/checar.mjs --dados dados-ramo --config config/alvos.json
+
+      - name: Gravar no ramo dados
+        env:
+          EXISTE: ${{ steps.ramo.outputs.existe }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # O token só existe neste passo e só no comando do push.
+          enviar() {
+            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')" \
+              push "$@" origin HEAD:refs/heads/dados
+          }
+          cd dados-ramo
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          agora="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          if [ "$EXISTE" != true ]; then
+            git commit -q -m "Dados: começo ($agora)"
+            enviar
+            exit 0
+          fi
+          # Uma vez por dia (o commit mais velho é de outro dia de Assunção), o ramo vira um commit só.
+          mais_velho="$(git log --max-parents=0 --format=%cI HEAD | tail -n 1)"
+          if [ "$(TZ=America/Asuncion date -d "$mais_velho" +%F)" != "$(TZ=America/Asuncion date +%F)" ]; then
+            git checkout -q --orphan dados-recriado
+            git commit -q -m "Dados: recriados ($agora)"
+            enviar --force
+          else
+            git commit -q -m "Checagem ($agora)"
+            enviar
+          fi
+
+  publicar:
+    needs: checar
+    if: needs.checar.outputs.publicar == 'true' && vars.FONTE_DOS_DADOS == 'dados'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

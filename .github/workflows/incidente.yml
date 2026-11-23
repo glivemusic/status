@@ -1,0 +1,125 @@
+name: Incidente
+
+on:
+  workflow_dispatch:
+    inputs:
+      acao:
+        description: 'Ação'
+        type: choice
+        options: [abrir, atualizar, resolver]
+        required: true
+      id:
+        description: 'Id do incidente (vazio ao abrir)'
+        type: string
+        required: false
+        default: ''
+      linhas:
+        description: 'Linhas, separadas por vírgula (app, login, banco); só ao abrir'
+        type: string
+        required: false
+        default: ''
+      tipo:
+        description: 'Tipo (só ao abrir)'
+        type: choice
+        options: [fora, degradado]
+        required: true
+      estado:
+        description: 'Estado (ao resolver, é ignorado)'
+        type: choice
+        options: [investigando, identificado, monitorando, resolvido]
+        required: true
+      titulo_pt:
+        description: 'Título em português (até 120 caracteres)'
+        type: string
+        required: false
+        default: ''
+      titulo_es:
+        description: 'Título em espanhol (até 120 caracteres)'
+        type: string
+        required: false
+        default: ''
+      texto_pt:
+        description: 'Texto em português (até 1000 caracteres)'
+        type: string
+        required: false
+        default: ''
+      texto_es:
+        description: 'Texto em espanhol (até 1000 caracteres)'
+        type: string
+        required: false
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: dados
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  gravar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Preparar o ramo dados
+        run: |
+          if git ls-remote --exit-code --heads origin dados > /dev/null; then
+            git fetch --no-tags origin +refs/heads/dados:refs/remotes/origin/dados
+            git worktree add --detach dados-ramo refs/remotes/origin/dados
+          else
+            # Ramo novo: começa vazio.
+            git worktree add --detach dados-ramo
+            git -C dados-ramo checkout -q --orphan dados-novo
+            git -C dados-ramo rm -rfq .
+          fi
+
+      - name: Conferir e gravar o incidente
+        env:
+          ACAO: ${{ inputs.acao }}
+          ID: ${{ inputs.id }}
+          LINHAS: ${{ inputs.linhas }}
+          TIPO: ${{ inputs.tipo }}
+          ESTADO: ${{ inputs.estado }}
+          TITULO_PT: ${{ inputs.titulo_pt }}
+          TITULO_ES: ${{ inputs.titulo_es }}
+          TEXTO_PT: ${{ inputs.texto_pt }}
+          TEXTO_ES: ${{ inputs.texto_es }}
+        run: node scripts/incidente.mjs --dados dados-ramo --config config/alvos.json
+
+      - name: Gravar no ramo dados
+        env:
+          ACAO: ${{ inputs.acao }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # O token só existe neste passo e só no comando do push.
+          enviar() {
+            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')" \
+              push "$@" origin HEAD:refs/heads/dados
+          }
+          cd dados-ramo
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -q -m "Incidente: $ACAO ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          enviar
+
+  publicar:
+    needs: gravar
+    if: vars.FONTE_DOS_DADOS == 'dados'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

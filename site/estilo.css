@@ -1,0 +1,388 @@
+:root {
+  color-scheme: light dark;
+  --fundo: #f5f6f4;
+  --cartao: #ffffff;
+  --borda: #dde2df;
+  --texto: #1c2320;
+  --suave: #56605b;
+  --verde: #1d6b3a;
+  --amarelo: #7d5800;
+  --vermelho: #b3261e;
+  --cinza: #56605b;
+  --barra-verde: #2f9e5b;
+  --barra-amarela: #e0a810;
+  --barra-vermelha: #d63b33;
+  --barra-cinza: #c9cfcc;
+  --aviso-fundo: #fff4d6;
+  --aviso-borda: #e0c068;
+  --foco: #1b5fbf;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #111513;
+    --cartao: #1a1f1d;
+    --borda: #2e3532;
+    --texto: #e7ece9;
+    --suave: #a6b0ab;
+    --verde: #6fd394;
+    --amarelo: #f2c14e;
+    --vermelho: #ff8a80;
+    --cinza: #a6b0ab;
+    --barra-verde: #3fb36b;
+    --barra-amarela: #e0b030;
+    --barra-vermelha: #ef5b52;
+    --barra-cinza: #3b4340;
+    --aviso-fundo: #2e2a1c;
+    --aviso-borda: #6b5a2a;
+    --foco: #7fb0ff;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.pagina {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Cabeçalho */
+.topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.marca {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--verde);
+}
+
+.titulo {
+  margin: 0.125rem 0 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+.idioma {
+  flex: none;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--texto);
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 0.375rem 0.875rem;
+  cursor: pointer;
+}
+
+.idioma:hover {
+  border-color: var(--suave);
+}
+
+:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+}
+
+/* Faixas */
+.aviso {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--aviso-borda);
+  border-radius: 0.5rem;
+  background: var(--aviso-fundo);
+  color: var(--texto);
+  font-size: 0.9375rem;
+}
+
+.geral {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.geral-ok {
+  background: #1d6b3a;
+}
+
+.geral-degradado {
+  background: #7d5800;
+}
+
+.geral-fora {
+  background: #b3261e;
+}
+
+.geral-atrasado {
+  background: #56605b;
+}
+
+/* Cartão das linhas */
+.cartao {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 0.5rem;
+  padding: 0.25rem 1rem;
+  margin-bottom: 2rem;
+}
+
+.cartao-legenda {
+  margin: 0.75rem 0 0;
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--suave);
+}
+
+.linhas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.linha {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.linha:last-child {
+  border-bottom: 0;
+}
+
+.linha-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.linha-nome {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.linha-estado {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.estado-ok {
+  color: var(--verde);
+}
+
+.estado-degradado {
+  color: var(--amarelo);
+}
+
+.estado-fora {
+  color: var(--vermelho);
+}
+
+.estado-sem_dado {
+  color: var(--cinza);
+}
+
+.barras {
+  display: flex;
+  gap: 1px;
+  height: 2.25rem;
+}
+
+.barra {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1px;
+  background: var(--barra-cinza);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.barra:hover,
+.barra-escolhida {
+  opacity: 0.7;
+}
+
+.barra-verde {
+  background: var(--barra-verde);
+}
+
+.barra-amarela {
+  background: var(--barra-amarela);
+}
+
+.barra-vermelha {
+  background: var(--barra-vermelha);
+}
+
+.barra-cinza {
+  background: var(--barra-cinza);
+}
+
+.dica {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+}
+
+.linha-rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--suave);
+}
+
+.linha-pct {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Incidentes */
+.incidentes h2 {
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.incidentes-nenhum {
+  color: var(--suave);
+}
+
+.incidentes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.incidente {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.incidente-aberto {
+  border-left: 4px solid var(--amarelo);
+}
+
+.incidente-titulo {
+  margin: 0;
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+
+.incidente-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--suave);
+}
+
+.incidente-tipo {
+  font-weight: 600;
+}
+
+.tipo-fora {
+  color: var(--vermelho);
+}
+
+.tipo-degradado {
+  color: var(--amarelo);
+}
+
+.atualizacoes {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 0.75rem;
+  border-left: 2px solid var(--borda);
+}
+
+.atualizacao + .atualizacao {
+  margin-top: 0.75rem;
+}
+
+.atualizacao-cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.atualizacao-cabeca time {
+  color: var(--suave);
+}
+
+.atualizacao-texto {
+  margin: 0.125rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+/* Rodapé */
+.rodape {
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: var(--suave);
+}
+
+.rodape p {
+  margin: 0.25rem 0;
+}
+
+@media (max-width: 30rem) {
+  .pagina {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .cartao {
+    padding: 0.25rem 0.75rem;
+  }
+
+  .titulo {
+    font-size: 1.25rem;
+  }
+
+  .barras {
+    height: 2rem;
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "exemplo": true,
+  "agora": "2026-11-23T21:00:00Z",
+  "verificado_em": "2026-11-23T20:57:00Z",
+  "publicado_em": "2026-11-23T20:57:00Z",
+  "linhas": {
+    "app": {
+      "estado": "ok",
+      "fora_seguidas": 0,
+      "degradadas_seguidas": 0,
+      "boas_seguidas": 77,
+      "serie_inicio": "2026-11-23T14:37:00Z",
+      "incidente": null
+    },
+    "login": {
+      "estado": "ok",
+      "fora_seguidas": 0,
+      "degradadas_seguidas": 0,
+      "boas_seguidas": 430,
+      "serie_inicio": "2026-11-22T09:12:00Z",
+      "incidente": null
+    },
+    "banco": {
+      "estado": "degradado",
+      "fora_seguidas": 0,
+      "degradadas_seguidas": 15,
+      "boas_seguidas": 0,
+      "serie_inicio": "2026-11-23T19:47:00Z",
+      "incidente": "20261123-1947-banco"
+    },
+    "satelite": {
+      "estado": "ok",
+      "fora_seguidas": 0,
+      "degradadas_seguidas": 0,
+      "boas_seguidas": 612,
+      "serie_inicio": "2026-11-21T18:02:00Z",
+      "incidente": null
+    }
+  }
+}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Agronomy Center</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="estilo.css">
+<script type="module" src="pagina.mjs"></script>
+</head>
+<body>
+<div class="pagina">
+  <header class="topo">
+    <div class="topo-texto">
+      <p class="marca" id="marca"></p>
+      <h1 class="titulo" id="titulo"></h1>
+    </div>
+    <button class="idioma" id="idioma" type="button" hidden></button>
+  </header>
+  <main>
+    <noscript>
+      <p class="aviso" lang="pt-BR">Esta página precisa de JavaScript para mostrar a situação dos sistemas.</p>
+      <p class="aviso" lang="es-PY">Esta página necesita JavaScript para mostrar el estado de los sistemas.</p>
+    </noscript>
+    <p class="aviso" id="aviso" hidden></p>
+    <div class="geral" id="geral" role="status" hidden></div>
+    <section class="cartao" id="cartao" hidden>
+      <p class="cartao-legenda" id="legenda"></p>
+      <ul class="linhas" id="linhas"></ul>
+    </section>
+    <section class="incidentes" id="secao-incidentes" hidden>
+      <h2 id="incidentes-titulo"></h2>
+      <div id="incidentes"></div>
+    </section>
+  </main>
+  <footer class="rodape">
+    <p id="atualizado"></p>
+    <p id="contato"></p>
+  </footer>
+</div>
+</body>
+</html>

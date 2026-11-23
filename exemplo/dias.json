@@ -1,0 +1,2503 @@
+{
+  "exemplo": true,
+  "app": {
+    "2026-08-26": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-27": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-28": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-29": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-30": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-31": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-01": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-02": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-03": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-04": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-06": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-07": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-08": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-10": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-11": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-12": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-13": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-14": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-15": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-16": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-17": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-18": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-19": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-20": {
+      "feitas": 286,
+      "ok": 271,
+      "degradado": 15,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-21": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-22": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-23": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-24": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-25": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-26": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-27": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-28": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-29": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-30": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-01": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-02": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-03": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-04": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-05": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-06": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-07": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-08": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-10": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-11": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-12": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-13": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-14": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-15": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-16": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-17": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-18": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-19": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-20": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-21": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-22": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-23": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-24": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-25": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-26": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-27": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-28": {
+      "feitas": 120,
+      "ok": 120,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-29": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-30": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-31": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-01": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-02": {
+      "feitas": 288,
+      "ok": 278,
+      "degradado": 0,
+      "fora": 10,
+      "minutos_fora": 50
+    },
+    "2026-11-03": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-04": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-05": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-06": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-07": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-08": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-10": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-11": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-12": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-13": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-14": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-15": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-16": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-17": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-18": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-19": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-20": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-21": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-22": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-23": {
+      "feitas": 216,
+      "ok": 216,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  },
+  "login": {
+    "2026-08-26": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-27": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-28": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-29": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-30": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-31": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-01": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-02": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-03": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-04": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-06": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-07": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-08": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-09": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-10": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-11": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-12": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-13": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-14": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-15": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-16": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-17": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-18": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-19": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-20": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-21": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-22": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-23": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-24": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-25": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-26": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-27": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-28": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-29": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-30": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-01": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-02": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-03": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-04": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-05": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-06": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-07": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-08": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-09": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-10": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-11": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-12": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-13": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-14": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-15": {
+      "feitas": 288,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 1,
+      "minutos_fora": 7
+    },
+    "2026-10-16": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-17": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-18": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-19": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-20": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-21": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-22": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-23": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-24": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-25": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-26": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-27": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-28": {
+      "feitas": 120,
+      "ok": 120,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-29": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-30": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-31": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-01": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-02": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-03": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-04": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-05": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-06": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-07": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-08": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-10": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-11": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-12": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-13": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-14": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-15": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-16": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-17": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-18": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-19": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-20": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-21": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-22": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-23": {
+      "feitas": 216,
+      "ok": 216,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  },
+  "banco": {
+    "2026-08-26": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-27": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-28": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-29": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-30": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-31": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-01": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-02": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-03": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-04": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-06": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-07": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-08": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-10": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-11": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-12": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-13": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-14": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-15": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-16": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-17": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-18": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-19": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-20": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-21": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-22": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-23": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-24": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-25": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-26": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-27": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-28": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-29": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-30": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-01": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-02": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-03": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-04": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-05": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-06": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-07": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-08": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-09": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-10": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-11": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-12": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-13": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-14": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-15": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-16": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-17": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-18": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-19": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-20": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-21": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-22": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-23": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-24": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-25": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-26": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-27": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-28": {
+      "feitas": 120,
+      "ok": 120,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-29": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-30": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-31": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-01": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-02": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-03": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-04": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-05": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-06": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-07": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-08": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-09": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-10": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-11": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-12": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-13": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-14": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-15": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-16": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-17": {
+      "feitas": 288,
+      "ok": 287,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-18": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-19": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-20": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-21": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-22": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-23": {
+      "feitas": 216,
+      "ok": 201,
+      "degradado": 15,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  },
+  "satelite": {
+    "2026-08-26": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-27": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-28": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-29": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-30": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-08-31": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-01": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-02": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-03": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-04": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-06": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-07": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-08": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-10": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-11": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-12": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-13": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-14": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-15": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-16": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-17": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-18": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-19": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-20": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-21": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-22": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-23": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-24": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-25": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-26": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-27": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-28": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-29": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-09-30": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-01": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-02": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-03": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-04": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-05": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-06": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-07": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-08": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-10": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-11": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-12": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-13": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-14": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-15": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-16": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-17": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-18": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-19": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-20": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-21": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-22": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-23": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-24": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-25": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-26": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-27": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-28": {
+      "feitas": 120,
+      "ok": 120,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-29": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-30": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-10-31": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-01": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-02": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-03": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-04": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-05": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-06": {
+      "feitas": 287,
+      "ok": 286,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-07": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-08": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-09": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-10": {
+      "feitas": 286,
+      "ok": 247,
+      "degradado": 39,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-11": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-12": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-13": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-14": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-15": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-16": {
+      "feitas": 286,
+      "ok": 285,
+      "degradado": 1,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-17": {
+      "feitas": 287,
+      "ok": 287,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-18": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-19": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-20": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-21": {
+      "feitas": 288,
+      "ok": 288,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-22": {
+      "feitas": 286,
+      "ok": 286,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-23": {
+      "feitas": 216,
+      "ok": 216,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  }
+}
