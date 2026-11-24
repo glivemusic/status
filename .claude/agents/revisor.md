@@ -10,7 +10,7 @@ isso.
 
 ## Entrada
 
-O diff (o arquivo que a sessão principal gravou com `git diff`), a saída do `node --test` e a raiz da árvore. Sem isso, peça e pare.
+O diff (o arquivo que a sessão principal gravou com `git diff`), a saída dos testes da mudança e a raiz da árvore. Sem isso, peça e pare.
 
 ## Como revisar
 
@@ -19,10 +19,10 @@ O diff (o arquivo que a sessão principal gravou com `git diff`), a saída do `n
    primeira falha da série e o fim a primeira boa da série que fechou; checagem que faltou é «sem dado» e não entra
    na disponibilidade; «Monitoramento atrasado» depois de 60 min (D14); o dia é o de `America/Asuncion`; a cor da barra
    segue o §3.3, cinza com menos de 50 % das checagens.
-3. **Testes:** cada regra acima tem um teste que falharia se a regra quebrasse. A sessão principal roda o `node --test` e te passa
+3. **Testes:** cada regra acima tem um teste que falharia se a regra quebrasse. A sessão principal roda os testes da mudança (a suíte inteira só na CI) e te passa
    a saída; você não roda comando.
 4. **Dados:** os JSON seguem o §3.4; 90 dias em `dias.json`; um ano em `incidentes.json`.
-5. **Workflows:** cron desligado até ordem do coordenador; `concurrency` comum entre checagem e incidente; o ramo
+5. **Workflows:** cron desligado até ordem do coordenador; `concurrency` só na checagem (grupo `checagem`), o incidente sem grupo e o laço de gravação de D13 (D18); o ramo
    `dados` recriado uma vez por dia; o deploy do Pages só quando preciso.
 6. **Página:** os textos do §4.2 nos dois idiomas, `?lang=` e `navigator.language`, o botão de idioma, o
    a linha do satélite pela D11, a marca «exemplo» visível quando os dados são de exemplo.

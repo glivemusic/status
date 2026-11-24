@@ -20,7 +20,7 @@ achados aceitos para corrigir. Sem isso, não comece: peça e pare.
 4. Cada regra do plano §3 tem teste em `test/`, que afirma o que se vê (o estado, o incidente aberto ou fechado, a
    cor, a porcentagem), não os detalhes de dentro.
 5. Texto de tela só no catálogo de idiomas, nos dois idiomas, com as chaves do plano §4.2.
-6. Rode `node --test` e, se mexeu na página, abra-a localmente (`node scripts/montar-site.mjs` e um servidor
+6. Rode só os testes da mudança (`node --test test/<arquivo>.test.mjs …`; a suíte inteira nunca roda aqui, regra do dono no `CLAUDE.md`) e, se mexeu na página, abra-a localmente (`node scripts/montar-site.mjs` e um servidor
    estático) antes do relatório.
 7. Não faça commit nem push, a menos que a tarefa peça.
 

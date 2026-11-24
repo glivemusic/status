@@ -41,7 +41,18 @@ A esteira: o `implementer` escreve; o `revisor`, o `seguranca` e o `qa` conferem
 decide o destino de cada achado e devolve ao `implementer`. O `seguranca` é obrigatório em toda mudança de
 workflow, de dado publicado ou de código da página.
 
-Antes de dizer pronto: `node --test` verde, a página aberta e conferida por foto nos dois idiomas (pt-BR e es-PY),
-a 360 e a 1440 px.
+### Testes: só os da mudança (regra do dono, 23/11/2026)
+
+Palavra do dono: «NÃO CARA SUITE INTEIRA NÃO PELO AMOR DE DEUS É SÓ AS ALTERAÇOES».
+
+- Nesta máquina, a suíte inteira **nunca** roda: nem `node --test` sem arquivo, nem a cada fatia, nem antes do push.
+  Suíte inteira rodando: encerra-se pelo pid, e rodam-se só os testes da mudança.
+- Localmente, só os testes ligados ao que mudou: `node --test test/<arquivo>.test.mjs …`, os que importam os
+  módulos de `lib/`, `scripts/` ou `site/` tocados.
+- A suíte inteira roda só na CI do GitHub (`ci.yml`), que é a prova antes de dizer pronto.
+- O QA com navegador só nas telas que mudaram, uma vez, quando as fatias estiverem prontas.
+
+Antes de dizer pronto: os testes da mudança verdes aqui, a CI verde no GitHub, e a página aberta e conferida por foto
+nos dois idiomas (pt-BR e es-PY), a 360 e a 1440 px, só no que mudou.
 
 Commits: `git add` por lista explícita, mensagem por `git commit -F`, em português.
