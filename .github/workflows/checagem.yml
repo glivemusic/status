@@ -2,9 +2,9 @@ name: Checagem
 
 on:
   workflow_dispatch:
-  # Ligar quando o coordenador avisar.
-  # schedule:
-  #   - cron: '2-59/5 * * * *'
+  # Ligado em 23/11/2026 por ordem do coordenador (D17: produção, só o aplicativo).
+  schedule:
+    - cron: '2-59/5 * * * *'
 
 permissions: {}
 
