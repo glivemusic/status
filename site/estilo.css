@@ -88,7 +88,8 @@
   --barra-verde: #15803d;
   --barra-amarela: #936228;
   --barra-vermelha: #c2352a;
-  --barra-cinza: #c8c7c4;
+  /* D21: «sem dados» com >= 3:1 no cartão, nos dois temas: o 400 da escala de cinzas da casa (3,39:1 aqui). */
+  --barra-cinza: #8d8b89;
   /* Estado: o fundo da faixa geral, com texto branco, igual nos dois temas */
   --geral-texto: #ffffff;
   --geral-ok: #15803d;
@@ -126,7 +127,7 @@
     --barra-verde: #6ec282;
     --barra-amarela: #d3aa6f;
     --barra-vermelha: #ff918e;
-    --barra-cinza: #666666;
+    --barra-cinza: #8d8b89;
   }
 }
 

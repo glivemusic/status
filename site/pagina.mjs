@@ -4,6 +4,7 @@ import { preencher } from './lib/texto.mjs';
 import {
   dataDeAssuncao,
   diaDeAssuncao,
+  formatarDia,
   horaDeAssuncao,
   emMs,
   minutosDesde,
@@ -11,11 +12,11 @@ import {
 } from './lib/tempo.mjs';
 import {
   DIAS_GUARDADOS,
+  DIAS_PARA_PERCENTUAL,
   corDoDia,
   disponibilidade,
-  esperadasNoDia,
-  intervaloDaLinha,
   linhaPorFato,
+  medindoDesde,
   temIncidenteDegradadoNoDia,
 } from './lib/dias.mjs';
 import { estadoAtual, incidentesRecentes, partesDaDuracao } from './lib/incidentes.mjs';
@@ -100,22 +101,28 @@ function desenharGeral(instante) {
 }
 
 // D19: `quantas` barras (90, ou 30 abaixo de 48rem); o percentual é sempre o dos 90 dias.
+// D21: com menos de 7 dias medidos nos 90, «—» e «medindo desde {data}» (`medindo`, a data; null com 7 ou mais,
+// e também sem nenhum dia medido, que fica com «—» como antes).
 function desenharBarras(linha, instante, dica, quantas) {
   const hoje = diaDeAssuncao(instante);
   const porDia = dados.dias[linha.id] ?? {};
-  // D11: a linha por fato tem os seus previstos por dia, a sua disponibilidade e a sua cor.
+  // D11: a linha por fato tem a sua disponibilidade e a sua cor.
   const porFato = linhaPorFato(linha);
-  const intervalo = intervaloDaLinha(linha);
-  const registros = [];
+  const naJanela = {};
   for (let n = DIAS_GUARDADOS - 1; n >= 0; n -= 1) {
-    const registro = porDia[somarDias(hoje, -n)];
-    if (registro) registros.push(registro);
+    const dia = somarDias(hoje, -n);
+    if (porDia[dia]) naJanela[dia] = porDia[dia];
   }
-  const pct = disponibilidade(registros, { porFato });
+  const medido = medindoDesde(naJanela);
+  const medindo = medido.dias > 0 && medido.dias < DIAS_PARA_PERCENTUAL ? formatarDia(medido.desde) : null;
+  const pct = medido.dias < DIAS_PARA_PERCENTUAL ? '—' : disponibilidade(Object.values(naJanela), { porFato });
 
   const barras = el('div', 'barras');
   barras.setAttribute('role', 'group');
-  barras.setAttribute('aria-label', t('barras.resumo', { pct }));
+  barras.setAttribute(
+    'aria-label',
+    medindo ? t('barras.resumo_medindo', { data: medindo }) : t('barras.resumo', { pct }),
+  );
   const botoes = [];
   for (let n = quantas - 1; n >= 0; n -= 1) {
     const dia = somarDias(hoje, -n);
@@ -123,7 +130,6 @@ function desenharBarras(linha, instante, dica, quantas) {
     const cor = corDoDia({
       registro,
       temDegradado: temIncidenteDegradadoNoDia(dados.incidentes, linha.id, dia, instante),
-      esperadas: esperadasNoDia(dia, instante, intervalo),
       porFato,
     });
     const data = diaCurto(dia, t('barra.data'), t('meses'));
@@ -191,7 +197,7 @@ function desenharBarras(linha, instante, dica, quantas) {
     escolher(destino);
     botoes[destino].focus();
   });
-  return { barras, pct };
+  return { barras, pct, medindo };
 }
 
 function desenharLinhas(instante) {
@@ -222,11 +228,15 @@ function desenharLinhas(instante) {
     const dica = el('p', 'dica');
     dica.hidden = true;
     dica.setAttribute('aria-hidden', 'true');
-    const { barras, pct } = desenharBarras(linha, instante, dica, quantas);
+    const { barras, pct, medindo } = desenharBarras(linha, instante, dica, quantas);
+    // D21: «—» no lugar do percentual e «medindo desde {data}» no lugar de «de disponibilidade» (nas duas larguras).
+    const disponivel = medindo
+      ? `${pct} ${t('barras.medindo_desde', { data: medindo })}`
+      : t(todas ? 'barras.disponibilidade' : 'barras.disponibilidade_90', { pct });
     const rodape = el('div', 'linha-rodape');
     rodape.append(
       el('span', null, t('barras.dias_atras', { n: quantas })),
-      el('span', 'linha-pct', t(todas ? 'barras.disponibilidade' : 'barras.disponibilidade_90', { pct })),
+      el('span', 'linha-pct', disponivel),
       el('span', null, t('barras.hoje')),
     );
     const base = el('div', 'linha-base');

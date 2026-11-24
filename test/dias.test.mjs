@@ -1,12 +1,14 @@
-// D5: dias de Assunção, disponibilidade, cor da barra e cortes.
+// D5 e D21: dias de Assunção, disponibilidade, cor da barra, «medindo desde» e cortes.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  DIAS_PARA_PERCENTUAL,
   atualizarMinutosFora,
   corDoDia,
   cortarDias,
   disponibilidade,
   esperadasNoDia,
+  medindoDesde,
   minutosNoDia,
   registrarChecagem,
 } from '../lib/dias.mjs';
@@ -49,29 +51,63 @@ test('disponibilidade: (ok + degradado) / feitas, 2 casas com vírgula; sem chec
   );
 });
 
-test('as quatro cores, com as bordas de 30 min e de 50 %', () => {
+test('as quatro cores, com a borda dos 30 min; cinza só sem checagem (D21)', () => {
   const dia = (extra) => ({ feitas: 288, ok: 288, degradado: 0, fora: 0, minutos_fora: 0, ...extra });
   assert.equal(corDoDia({ registro: dia({ minutos_fora: 30 }) }), 'vermelha');
   assert.equal(corDoDia({ registro: dia({ minutos_fora: 29 }) }), 'amarela');
   assert.equal(corDoDia({ registro: dia({ minutos_fora: 1 }) }), 'amarela');
   assert.equal(corDoDia({ registro: dia(), temDegradado: true }), 'amarela');
-  assert.equal(corDoDia({ registro: dia({ feitas: 143, ok: 143 }), esperadas: 288 }), 'cinza');
-  assert.equal(corDoDia({ registro: dia({ feitas: 144, ok: 144 }), esperadas: 288 }), 'verde');
-  assert.equal(corDoDia({ registro: undefined }), 'cinza');
   assert.equal(corDoDia({ registro: dia() }), 'verde');
+  // D21: a regra dos 50 % saiu; o dia com poucas checagens e sem incidente é verde.
+  assert.equal(corDoDia({ registro: dia({ feitas: 143, ok: 143 }) }), 'verde');
+  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 1 }) }), 'verde');
+  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 0, degradado: 1 }) }), 'verde');
+  // Só checagem «fora» sem incidente (D4 não chegou a abrir): verde também (sessão principal, 24/11/2026).
+  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 0, fora: 1 }) }), 'verde');
+  // Cinza: o dia sem nenhuma checagem feita.
+  assert.equal(corDoDia({ registro: undefined }), 'cinza');
+  assert.equal(corDoDia({ registro: dia({ feitas: 0, ok: 0 }) }), 'cinza');
   // Vermelha e amarela vêm antes de cinza.
   assert.equal(corDoDia({ registro: dia({ feitas: 10, minutos_fora: 45 }) }), 'vermelha');
-  assert.equal(corDoDia({ registro: dia({ feitas: 10, ok: 8, fora: 2, minutos_fora: 12 }), esperadas: 288 }), 'amarela');
-  assert.equal(corDoDia({ registro: dia({ feitas: 10, ok: 10 }), temDegradado: true, esperadas: 288 }), 'amarela');
-  assert.equal(corDoDia({ registro: undefined, temDegradado: true, esperadas: 288 }), 'amarela');
+  assert.equal(corDoDia({ registro: dia({ feitas: 10, ok: 8, fora: 2, minutos_fora: 12 }) }), 'amarela');
+  assert.equal(corDoDia({ registro: dia({ feitas: 10, ok: 10 }), temDegradado: true }), 'amarela');
+  assert.equal(corDoDia({ registro: undefined, temDegradado: true }), 'amarela');
+  assert.equal(corDoDia({ registro: dia({ feitas: 0, ok: 0, minutos_fora: 30 }) }), 'vermelha');
 });
 
 test('esperadas: 288 por dia; hoje, só as que já deviam ter acontecido', () => {
   const agora = '2026-11-23T21:00:00Z'; // 18:00 em Assunção
   assert.equal(esperadasNoDia('2026-11-22', agora), 288);
   assert.equal(esperadasNoDia('2026-11-23', agora), 216);
-  // Hoje, com 110 checagens de 216 esperadas, ainda é verde.
-  assert.equal(corDoDia({ registro: { feitas: 110, ok: 110, degradado: 0, fora: 0, minutos_fora: 0 }, esperadas: 216 }), 'verde');
+});
+
+test('D21: o dia de hoje com 1 checagem ok sai verde; o dia sem checagem, cinza', () => {
+  const agora = '2026-11-24T13:02:00Z';
+  const dias = {};
+  registrarChecagem(dias, 'app', 'ok', agora);
+  const hoje = diaDeAssuncao(agora);
+  assert.equal(corDoDia({ registro: dias.app[hoje] }), 'verde');
+  assert.equal(corDoDia({ registro: dias.app[somarDias(hoje, -1)] }), 'cinza');
+  // Uma leitura sem dado não conta como checagem feita.
+  const soSemDado = {};
+  registrarChecagem(soSemDado, 'app', 'sem_dado', agora);
+  assert.equal(corDoDia({ registro: soSemDado.app[hoje] }), 'cinza');
+});
+
+test('D21: medindo desde: conta os dias com checagem feita; 6 medem, 7 dão o percentual', () => {
+  const r = (feitas) => ({ feitas, ok: feitas, degradado: 0, fora: 0, minutos_fora: 0 });
+  const porDia = {};
+  for (let n = 0; n < 6; n += 1) porDia[somarDias('2026-11-24', -n)] = r(n === 5 ? 1 : 288);
+  // Um dia mais velho com feitas 0 (só leituras sem dado) não conta nem vira o «desde».
+  porDia['2026-11-10'] = r(0);
+  assert.deepEqual(medindoDesde(porDia), { dias: 6, desde: '2026-11-19' });
+  assert.ok(medindoDesde(porDia).dias < DIAS_PARA_PERCENTUAL, '6 dias: ainda medindo');
+  porDia['2026-11-12'] = r(3);
+  assert.deepEqual(medindoDesde(porDia), { dias: 7, desde: '2026-11-12' });
+  assert.ok(medindoDesde(porDia).dias >= DIAS_PARA_PERCENTUAL, '7 dias: o percentual');
+  assert.equal(DIAS_PARA_PERCENTUAL, 7);
+  assert.deepEqual(medindoDesde({}), { dias: 0, desde: null });
+  assert.deepEqual(medindoDesde(undefined), { dias: 0, desde: null });
 });
 
 test('minutos fora: só incidentes «fora» da linha, recortados no dia; aberto conta até agora', () => {

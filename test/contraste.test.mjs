@@ -1,5 +1,5 @@
-// D16 e D19: as cores do Agronomy Center e o contraste, nos dois temas, lidos de site/estilo.css: >= 4,5:1 em
-// cada par de texto e >= 3:1 em cada cor de barra de estado e no ícone do aviso. Mais a fonte (Inter, servida
+// D16, D19 e D21: as cores do Agronomy Center e o contraste, nos dois temas, lidos de site/estilo.css: >= 4,5:1 em
+// cada par de texto e >= 3:1 em cada cor de barra (o cinza de «sem dados» também) e no ícone do aviso. Mais a fonte (Inter, servida
 // daqui, sem peso 700), a marca, o seletor de idioma, o foco e os raios (docs/revisao-visual-2026-11-23.md).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -62,7 +62,8 @@ const PARES_DE_TEXTO = [
 
 // [cor, fundo]: o que não é texto e tem de ser visto (>= 3:1).
 const PARES_GRAFICOS = [
-  ...['--barra-verde', '--barra-amarela', '--barra-vermelha'].map((b) => [b, '--cartao']),
+  // D21: o cinza de «sem dados» também, sem exceção.
+  ...['--barra-verde', '--barra-amarela', '--barra-vermelha', '--barra-cinza'].map((b) => [b, '--cartao']),
   ['--aviso-borda', '--aviso-fundo'],
   // O anel de foco.
   ['--acao', '--chao'],
@@ -89,25 +90,40 @@ test('contraste (>= 3:1) de cada cor de barra de estado, do ícone do aviso e do
   }
 });
 
-test('a exceção do cinza de «sem dados» (D19): fora do mínimo de 3:1, com os valores da revisão, dito em texto', (t) => {
-  // «Sem dados» é ausência de medida, não um estado: o nome acessível e a dica do dia dizem «sem dados», não só a
-  // cor. Por isso fica fora do mínimo de 3:1, com os valores exatos da revisão visual.
-  assert.equal(valor('claro', '--barra-cinza'), '#c8c7c4');
-  assert.equal(valor('escuro', '--barra-cinza'), '#666666');
+test('D21: o cinza de «sem dados» passa de 3:1 no cartão, é o mais discreto da escala da casa que passa e não se confunde com o estado', (t) => {
+  // A escala de cinzas da casa (basefertilapp/docs/design.md), do cartão claro para o escuro, e a do tema escuro.
+  const ESCALA = ['#ffffff', '#f7f6f5', '#f2f1f0', '#f5f4f2', '#ebeae8', '#e5e4e2', '#dfdedc', '#d8d7d5', '#c8c7c4', '#b2b0ae', '#8d8b89', '#696865', '#545351', '#41403e', '#302f2d', '#201f1d', '#151413'];
+  const ESCALA_ESCURA = ['#303030', '#363636', '#3f3f3f', '#424242', '#444444', '#525252', '#666666', '#9f9f9f', '#b3b1ad', '#c7c5c1', '#e9e7e3'];
+  const cinzas = [...new Set([...ESCALA, ...ESCALA_ESCURA])];
   for (const tema of Object.keys(TEMAS)) {
-    const r = contraste(valor(tema, '--barra-cinza'), valor(tema, '--cartao'));
-    t.diagnostic(`${tema}: --barra-cinza sobre --cartao = ${r.toFixed(2)}:1 (exceção)`);
+    const cinza = valor(tema, '--barra-cinza');
+    const cartao = valor(tema, '--cartao');
+    assert.ok(cinzas.includes(cinza), `${tema}: ${cinza} é da escala da casa`);
+    const r = contraste(cinza, cartao);
+    t.diagnostic(`${tema}: --barra-cinza ${cinza} sobre --cartao ${cartao} = ${r.toFixed(2)}:1`);
+    assert.ok(r >= 3, `${tema}: ${r.toFixed(2)}:1`);
+    // Nenhum cinza da casa que passe de 3:1 fica mais perto do cartão.
+    for (const outro of cinzas) {
+      const ro = contraste(outro, cartao);
+      if (ro >= 3) assert.ok(ro >= r, `${tema}: ${outro} (${ro.toFixed(2)}:1) passa e é mais discreto`);
+    }
+    // Distinguível do verde, do amarelo e do vermelho: o cinza é neutro (sem matiz) e eles não.
+    const croma = (hex) => {
+      const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      return Math.max(...c) - Math.min(...c);
+    };
+    assert.ok(croma(cinza) <= 4, `${tema}: o cinza é neutro`);
+    for (const cor of ['--barra-verde', '--barra-amarela', '--barra-vermelha']) {
+      const estado = valor(tema, cor);
+      t.diagnostic(`${tema}: --barra-cinza contra ${cor} = ${contraste(cinza, estado).toFixed(2)}:1, croma ${croma(estado)}`);
+      assert.ok(croma(estado) >= 60, `${tema}: ${cor} tem matiz`);
+      assert.ok(contraste(cinza, estado) >= 1.4, `${tema}: o cinza e ${cor} se separam também pela luz`);
+    }
   }
-  const textos = readFileSync(new URL('../site/textos.mjs', import.meta.url), 'utf8');
-  assert.match(textos, /'barra\.sem_dado': '\{dia\}: sem dados'/);
-  assert.match(textos, /'barra\.sem_dado': '\{dia\}: sin datos'/);
-  // A única cor de barra fora da regra de 3:1 é o cinza.
+  // As quatro cores de barra, todas na regra de 3:1.
   const barras = Object.keys(TEMAS.claro).filter((k) => k.startsWith('--barra-'));
   assert.deepEqual(barras.sort(), ['--barra-amarela', '--barra-cinza', '--barra-verde', '--barra-vermelha']);
-  assert.deepEqual(
-    PARES_GRAFICOS.filter(([c]) => c.startsWith('--barra-')).map(([c]) => c).sort(),
-    ['--barra-amarela', '--barra-verde', '--barra-vermelha'],
-  );
+  assert.deepEqual(PARES_GRAFICOS.filter(([c]) => c.startsWith('--barra-')).map(([c]) => c).sort(), barras.sort());
 });
 
 test('a barra sob o mouse ou escolhida não clareia: sem opacity nem filter nas barras; ela cresce', () => {
@@ -154,7 +170,7 @@ test('os tokens de D19, com as cores da revisão visual, nos dois temas', () => 
     '--barra-verde': '#15803d',
     '--barra-amarela': '#936228',
     '--barra-vermelha': '#c2352a',
-    '--barra-cinza': '#c8c7c4',
+    '--barra-cinza': '#8d8b89',
     '--geral-ok': '#15803d',
     '--geral-degradado': '#936228',
     '--geral-fora': '#c2352a',
@@ -181,7 +197,7 @@ test('os tokens de D19, com as cores da revisão visual, nos dois temas', () => 
     '--barra-verde': '#6ec282',
     '--barra-amarela': '#d3aa6f',
     '--barra-vermelha': '#ff918e',
-    '--barra-cinza': '#666666',
+    '--barra-cinza': '#8d8b89',
     // O símbolo e a faixa geral são os mesmos nos dois temas.
     '--marca-laranja': '#d66a2f',
     '--geral-degradado': '#936228',

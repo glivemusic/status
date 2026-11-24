@@ -1,4 +1,5 @@
-// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11, D17, D19 e as chaves da sessão principal).
+// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11, D17, D19, D21 e as chaves da sessão
+// principal).
 // Sem import: os scripts também leem este arquivo.
 
 export const TEXTOS = {
@@ -25,6 +26,8 @@ export const TEXTOS = {
     'barras.hoje': 'Hoje',
     'barras.dias_atras': 'Há {n} dias',
     'barras.resumo': 'Últimos 90 dias: {pct} de disponibilidade',
+    'barras.medindo_desde': 'medindo desde {data}',
+    'barras.resumo_medindo': 'Últimos 90 dias: medindo desde {data}',
     'barra.dica': '{dia}: {pct} no ar · {minutos} min fora do ar',
     'barra.nome': '{dia}: {pct} no ar, {minutos} min fora do ar',
     'barra.sem_dado': '{dia}: sem dados',
@@ -76,6 +79,8 @@ export const TEXTOS = {
     'barras.hoje': 'Hoy',
     'barras.dias_atras': 'Hace {n} días',
     'barras.resumo': 'Últimos 90 días: {pct} de disponibilidad',
+    'barras.medindo_desde': 'midiendo desde {data}',
+    'barras.resumo_medindo': 'Últimos 90 días: midiendo desde {data}',
     'barra.dica': '{dia}: {pct} en línea · {minutos} min fuera de línea',
     'barra.nome': '{dia}: {pct} en línea, {minutos} min fuera de línea',
     'barra.sem_dado': '{dia}: sin datos',

@@ -4,7 +4,7 @@
 //   node scripts/gravar-dados.mjs --medida <arquivo> --arvore <pasta> --remoto <url>
 //        [--config config/alvos.json] [--espera-min 1000] [--espera-max 4000]
 // Em cada tentativa lê os JSON do `dados` recém-buscado, aplica a medida, faz o commit e o push. O `publicar` da
-// tentativa que gravou vai para $GITHUB_OUTPUT, quando existir.
+// tentativa que gravou vai para $GITHUB_OUTPUT, quando existir, junto com o `encadear` (D20: o teto diário).
 //
 // Como módulo, `gravarNoRamo` é o laço que a checagem e o incidente (scripts/incidente.mjs) usam.
 // O token entra só pelo ambiente (GH_TOKEN) e só no push; nenhum outro filho git o recebe.
@@ -15,6 +15,7 @@ import { setTimeout as esperarMs } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { aplicarMedida } from '../lib/checagem.mjs';
+import { anotarEncadeado } from '../lib/encadear.mjs';
 import {
   AUTOR,
   ESPERA_MAX_MS,
@@ -186,7 +187,9 @@ export function esperaDasOpcoes(values) {
   return { esperaMinMs: ler('espera-min', ESPERA_MIN_MS), esperaMaxMs: ler('espera-max', ESPERA_MAX_MS) };
 }
 
-// A operação da checagem: aplica a medida aos JSON lidos na tentativa. O `publicar` sai desta tentativa.
+// A operação da checagem: aplica a medida aos JSON lidos na tentativa. O `publicar` sai desta tentativa, e o
+// `encadear` também: o teto diário de D20 conta no `estado.encadeados` lido agora (o `aviso` vai junto, e nenhum
+// dos dois vai à página).
 export function operacaoDaChecagem({ config, medida, textos = TEXTOS }) {
   return (ler) => {
     const s = aplicarMedida({
@@ -197,10 +200,11 @@ export function operacaoDaChecagem({ config, medida, textos = TEXTOS }) {
       medida,
       textos,
     });
+    const encadear = anotarEncadeado(s.estado, medida.instante);
     return {
       arquivos: { 'estado.json': s.estado, 'dias.json': s.dias, 'incidentes.json': { incidentes: s.incidentes } },
       mensagem: `Checagem (${medida.instante})`,
-      saida: s,
+      saida: { ...s, encadear },
     };
   };
 }
@@ -245,8 +249,10 @@ async function principal() {
   }
   const como = gravado.criou ? ', ramo criado' : gravado.recriou ? ', ramo recriado' : '';
   console.log(`Gravado no ramo dados na tentativa ${gravado.tentativas}${como}.`);
+  const encadear = s.encadear ? 'sim' : 'nao';
   console.log(`publicar=${s.publicar}`);
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `publicar=${s.publicar}\n`);
+  console.log(`encadear=${encadear}`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `publicar=${s.publicar}\nencadear=${encadear}\n`);
 }
 
 if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) await principal();

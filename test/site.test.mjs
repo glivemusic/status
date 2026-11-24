@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { corDoDia, esperadasNoDia, intervaloDaLinha, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
+import { corDoDia, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
 import { minutosDesde } from '../lib/tempo.mjs';
 import { TERMOS_PROIBIDOS, termoProibido, textoParaConferir } from '../lib/vazamento.mjs';
 import { linhasVisiveis } from '../lib/visao.mjs';
@@ -56,7 +56,11 @@ test('o exemplo cobre o cenário de D7', () => {
   const registros = Object.entries(dias).filter(([k]) => k !== 'exemplo').flatMap(([, d]) => Object.values(d));
   assert.ok(registros.some((r) => r.minutos_fora >= 30), 'dia vermelho');
   assert.ok(registros.some((r) => r.minutos_fora > 0 && r.minutos_fora < 30), 'dia amarelo');
-  assert.ok(registros.some((r) => r.feitas < 144), 'dia cinza');
+  // D21: o cinza é o dia sem checagem (o dia sem registro do exemplo, em todas as linhas).
+  assert.ok(
+    Object.entries(dias).filter(([k]) => k !== 'exemplo').every(([, d]) => !d['2026-09-05']),
+    'dia cinza',
+  );
   assert.ok(Object.keys(dias.satelite).length > 0, 'satélite com dados');
 });
 
@@ -65,7 +69,6 @@ test('o exemplo do satélite segue D11: um incidente resolvido, um dia amarelo, 
   const estado = ler('estado.json');
   const dias = ler('dias.json');
   const { incidentes } = ler('incidentes.json');
-  const linha = config.linhas.find((l) => l.id === 'satelite');
   const doSatelite = incidentes.filter((i) => i.linhas.includes('satelite'));
   assert.equal(doSatelite.length, 1);
   const [i] = doSatelite;
@@ -79,7 +82,6 @@ test('o exemplo do satélite segue D11: um incidente resolvido, um dia amarelo, 
     corDoDia({
       registro,
       temDegradado: temIncidenteDegradadoNoDia(incidentes, 'satelite', dia, agora),
-      esperadas: esperadasNoDia(dia, agora, intervaloDaLinha(linha)),
       porFato: true,
     }),
   );

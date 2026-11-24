@@ -27,6 +27,7 @@ jobs:
       contents: write
     outputs:
       publicar: ${{ steps.gravar.outputs.publicar }}
+      encadear: ${{ steps.gravar.outputs.encadear }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -57,3 +58,27 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/pages.yml
+
+  # D20: espera o próximo horário (nunca antes de 5 min do início deste run) e dispara a própria checagem, se não
+  # houver outro run dela ativo. Roda com a checagem falha, mas não com o run cancelado; o freio é a variável
+  # ENCADEAR=nao e o teto diário vem do checar (`nao`). O schedule fica de reserva.
+  encadear:
+    needs: checar
+    if: ${{ !cancelled() && vars.ENCADEAR != 'nao' && needs.checar.outputs.encadear != 'nao' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Esperar e disparar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/encadear.mjs

@@ -344,19 +344,20 @@ test('previstos: 12 por dia; hoje, proporcional', () => {
   assert.equal(esperadasNoDia('2026-11-22', agora), 288);
 });
 
-test('a cor do satélite: amarela com incidente degradado, cinza abaixo de 50 %, verde no resto; nunca vermelha', () => {
+test('a cor do satélite: amarela com incidente degradado, cinza sem fato no dia, verde no resto; nunca vermelha', () => {
   const dia = (extra) => ({ feitas: 12, ok: 12, degradado: 0, fora: 0, minutos_fora: 0, ...extra });
-  const cor = (registro, temDegradado = false) => corDoDia({ registro, temDegradado, esperadas: 12, porFato: true });
+  const cor = (registro, temDegradado = false) => corDoDia({ registro, temDegradado, porFato: true });
   assert.equal(cor(dia()), 'verde');
   assert.equal(cor(dia({ ok: 10, degradado: 2 }), true), 'amarela');
   assert.equal(cor(dia({ ok: 11, degradado: 1 })), 'verde', 'um fato degradado sem incidente não pinta');
-  assert.equal(cor(dia({ feitas: 5, ok: 5 })), 'cinza');
-  assert.equal(cor(dia({ feitas: 6, ok: 6 })), 'verde');
+  // D21: a regra dos 50 % saiu; um fato basta para o verde.
+  assert.equal(cor(dia({ feitas: 1, ok: 1 })), 'verde');
+  assert.equal(cor(dia({ feitas: 0, ok: 0 })), 'cinza');
   assert.equal(cor(undefined), 'cinza');
   // Mesmo com minutos fora (um incidente «fora» posto à mão), nunca vermelha.
   assert.equal(cor(dia({ minutos_fora: 300 })), 'verde');
   assert.equal(cor(dia({ minutos_fora: 300 }), true), 'amarela');
-  assert.equal(cor(dia({ feitas: 2, minutos_fora: 300 })), 'cinza');
+  assert.equal(cor(dia({ feitas: 0, ok: 0, minutos_fora: 300 })), 'cinza');
   // As outras linhas continuam com a vermelha.
   assert.equal(corDoDia({ registro: dia({ feitas: 288, minutos_fora: 30 }) }), 'vermelha');
 });

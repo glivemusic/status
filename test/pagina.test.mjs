@@ -326,6 +326,73 @@ test('D19: abaixo de 48rem, 30 barras, «Há 30 dias» e o percentual dos mesmos
   assert.equal(larga.barras.length, 90);
 });
 
+// D21: dados reais com `n` dias medidos do app, terminando hoje (23/11); um dia a mais só com `feitas: 0`.
+function dadosComDias(n) {
+  const fonte = dadosReais();
+  // Uma checagem fora sem incidente (D4 não abriu): o dia continua verde (D21).
+  const dia = { feitas: 100, ok: 98, degradado: 1, fora: 1, minutos_fora: 0 };
+  const app = { '2026-11-01': { feitas: 0, ok: 0, degradado: 0, fora: 0, minutos_fora: 0 } };
+  for (let k = 0; k < n; k += 1) app[`2026-11-${String(23 - k).padStart(2, '0')}`] = dia;
+  writeFileSync(join(fonte, 'dias.json'), JSON.stringify({ app }));
+  return fonte;
+}
+
+test('D21: com menos de 7 dias medidos, «—» e «medindo desde {data}» nas duas larguras e no resumo, nos dois idiomas', async () => {
+  const site = montar(dadosComDias(6));
+  for (const [idioma, rotulo, resumo] of [
+    ['pt-BR', '— medindo desde 18/11/2026', 'Últimos 90 dias: medindo desde 18/11/2026'],
+    ['es-PY', '— midiendo desde 18/11/2026', 'Últimos 90 días: midiendo desde 18/11/2026'],
+  ]) {
+    for (const estreita of [false, true]) {
+      const { grupo, rodape, barras } = barrasDaLinha(await desenhar(site, idioma, AGORA, { estreita }), 0);
+      assert.equal(rodape[1], rotulo, `${idioma} ${estreita ? 'estreita' : 'larga'}`);
+      assert.equal(grupo.getAttribute('aria-label'), resumo);
+      assert.equal(barras.length, estreita ? 30 : 90);
+      // Os dias com checagem são verdes (D21), o dia só com `feitas: 0` e os sem registro são cinza.
+      assert.equal(barras.at(-1).className, 'barra barra-verde');
+      assert.equal(barras.filter((b) => b.className === 'barra barra-verde').length, 6);
+    }
+  }
+});
+
+test('D21: um dia medido fora da janela de 90 dias não conta: «medindo desde» é o mais velho dentro dela', async () => {
+  const fonte = dadosComDias(5);
+  const dias = JSON.parse(readFileSync(join(fonte, 'dias.json'), 'utf8'));
+  const dia = dias.app['2026-11-23'];
+  // 95 dias antes de 23/11 (a janela começa em 26/08) e um dia antigo dentro dela: 6 medidos na janela.
+  dias.app['2026-08-20'] = dia;
+  dias.app['2026-09-10'] = dia;
+  writeFileSync(join(fonte, 'dias.json'), JSON.stringify(dias));
+  const site = montar(fonte);
+  for (const [idioma, rotulo] of [
+    ['pt-BR', '— medindo desde 10/09/2026'],
+    ['es-PY', '— midiendo desde 10/09/2026'],
+  ]) {
+    for (const estreita of [false, true]) {
+      const { rodape } = barrasDaLinha(await desenhar(site, idioma, AGORA, { estreita }), 0);
+      assert.equal(rodape[1], rotulo, `${idioma} ${estreita ? 'estreita' : 'larga'}`);
+    }
+  }
+});
+
+test('D21: com 7 dias medidos, o percentual de volta e sem «medindo desde»; sem nenhum, «—» como antes', async () => {
+  const site = montar(dadosComDias(7));
+  for (const [idioma, larga, estreita, resumo] of [
+    ['pt-BR', '99,00 % de disponibilidade', '99,00 % de disponibilidade em 90 dias', 'Últimos 90 dias: 99,00 % de disponibilidade'],
+    ['es-PY', '99,00 % de disponibilidad', '99,00 % de disponibilidad en 90 días', 'Últimos 90 días: 99,00 % de disponibilidad'],
+  ]) {
+    const l = barrasDaLinha(await desenhar(site, idioma, AGORA, { estreita: false }), 0);
+    assert.equal(l.rodape[1], larga);
+    assert.equal(l.grupo.getAttribute('aria-label'), resumo);
+    const e = barrasDaLinha(await desenhar(site, idioma, AGORA, { estreita: true }), 0);
+    assert.equal(e.rodape[1], estreita);
+  }
+  const vazio = barrasDaLinha(await desenhar(montar(dadosComDias(0)), 'pt-BR', AGORA, { estreita: false }), 0);
+  assert.equal(vazio.rodape[1], '— de disponibilidade');
+  assert.equal(vazio.grupo.getAttribute('aria-label'), 'Últimos 90 dias: — de disponibilidade');
+  assert.ok(vazio.barras.every((b) => b.className === 'barra barra-cinza'));
+});
+
 test('o site com a fonte dados não leva nada de exemplo/', () => {
   const site = montar(dadosReais());
   const doExemplo = readdirSync(EXEMPLO).map((n) => readFileSync(join(EXEMPLO, n), 'utf8'));

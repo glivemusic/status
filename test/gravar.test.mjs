@@ -270,7 +270,7 @@ test('(a) uma checagem e um incidente ao mesmo tempo, em dois processos: o dados
     assert.match(i.stdout, new RegExp(`Incidente aberto: ${ID_DO_MANUAL}`));
     temOsDoisEfeitos(raiz, remoto);
     assert.equal(commits(raiz, remoto), 2);
-    assert.equal(readFileSync(saidaDoJob, 'utf8'), 'publicar=true\n', 'o output vem do gravar-dados');
+    assert.equal(readFileSync(saidaDoJob, 'utf8'), 'publicar=true\nencadear=sim\n', 'o output vem do gravar-dados');
   } finally {
     rmSync(raiz, { recursive: true, force: true });
   }
@@ -350,6 +350,35 @@ test('(a) o publicar sai da tentativa que gravou, calculado contra os dados dela
     assert.equal(r.tentativas, 2);
     assert.equal(r.saida.publicar, false);
     assert.equal(noRamo(raiz, remoto, 'estado.json').publicado_em, '2026-11-23T20:58:00.000Z');
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+  }
+});
+
+test('D20: duas checagens ao mesmo tempo, uma recusada e reaplicada: o encadeados conta as duas', async () => {
+  const raiz = pasta();
+  try {
+    const remoto = novoRemoto(raiz);
+    // O ramo já existe (de hoje), sem encadeados: as recusas são as de avanço rápido, sem recriação.
+    await gravar(raiz, remoto, 'semente', { agora: '2026-11-23T20:00:00.000Z', operacao: () => ({ arquivos: {}, mensagem: 'semente' }) });
+    const medida = (instante) => ({ ...MEDIDA, instante });
+    const r = await gravar(raiz, remoto, 'arvore-1', {
+      ...checagem(medida('2026-11-23T21:00:00.000Z')),
+      antesDoPush: async ({ tentativa }) => {
+        // A outra checagem grava entre o fetch e o push da 1ª tentativa desta.
+        if (tentativa === 1) {
+          const outra = await gravar(raiz, remoto, 'arvore-2', checagem(medida('2026-11-23T21:01:00.000Z')));
+          assert.equal(outra.tentativas, 1);
+          assert.equal(outra.saida.encadear, true);
+        }
+      },
+    });
+    assert.equal(r.tentativas, 2, 'a 1ª foi recusada e a operação reaplicada');
+    assert.equal(r.saida.encadear, true);
+    const estado = noRamo(raiz, remoto, 'estado.json');
+    assert.deepEqual(estado.encadeados, { dia: '2026-11-23', n: 2 });
+    assert.equal(estado.encadeados.n, 2);
+    assert.ok(!('aviso' in estado));
   } finally {
     rmSync(raiz, { recursive: true, force: true });
   }
@@ -690,4 +719,13 @@ test('os workflows: a checagem no seu grupo sem cancelar, o incidente sem grupo 
   const checagemYml = readFileSync(join(RAIZ, '.github', 'workflows', 'checagem.yml'), 'utf8');
   assert.match(checagemYml, /publicar: \$\{\{ steps\.gravar\.outputs\.publicar \}\}/);
   assert.match(checagemYml, /--medida "\$RUNNER_TEMP\/medida\.json"/);
+  // D20: o encadear roda até com a checagem falha (não com o run cancelado), para com o freio ou o teto, e só ele
+  // pode disparar run.
+  assert.match(checagemYml, /encadear: \$\{\{ steps\.gravar\.outputs\.encadear \}\}/);
+  assert.match(
+    checagemYml,
+    /\n  encadear:\n    needs: checar\n    if: \$\{\{ !cancelled\(\) && vars\.ENCADEAR != 'nao' && needs\.checar\.outputs\.encadear != 'nao' \}\}\n    runs-on: ubuntu-latest\n    timeout-minutes: 8\n    permissions:\n      actions: write\n      contents: read\n/,
+  );
+  assert.equal(checagemYml.match(/actions: write/g).length, 1);
+  assert.match(checagemYml, /^permissions: \{\}$/m);
 });

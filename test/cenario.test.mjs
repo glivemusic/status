@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { CENARIOS, montarCenario } from '../scripts/cenario.mjs';
-import { corDoDia, esperadasNoDia, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
+import { corDoDia, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
 import { estadoGeral, estadosDoGeral } from '../lib/geral.mjs';
 import { incidentesRecentes } from '../lib/incidentes.mjs';
 import { diaDeAssuncao } from '../lib/tempo.mjs';
@@ -58,7 +58,6 @@ test('os cenários: tudo ok, fora do ar e monitoramento atrasado', () => {
   const cor = corDoDia({
     registro,
     temDegradado: temIncidenteDegradadoNoDia(fora.incidentes.incidentes, 'app', hoje, agora),
-    esperadas: esperadasNoDia(hoje, agora),
   });
   assert.equal(cor, 'vermelha');
 
