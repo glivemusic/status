@@ -1,10 +1,27 @@
+/* D16: a marca usa o laranja e o cinza do Agronomy Center; verde, amarelo, vermelho e o cinza de «sem dados»
+   ficam só para o estado. Um teste (test/contraste.test.mjs) confere o contraste AA dos pares de texto. */
 :root {
   color-scheme: light dark;
-  --fundo: #f5f6f4;
+  /* Marca */
+  --marca-grafite: #41403e;
+  --marca-laranja: #d66a2f;
+  --marca-rotulo: var(--marca-grafite);
+  --acao: #9d4d16;
+  --acao-hover: #8c4311;
+  --acao-suave: #ebeae8;
+  /* Neutros */
+  --tinta: #201f1d;
+  --apoio: #545351;
+  --discreto: #696865;
+  --chao: #f7f6f5;
   --cartao: #ffffff;
-  --borda: #dde2df;
-  --texto: #1c2320;
-  --suave: #56605b;
+  --linha: #e5e4e2;
+  --linha-forte: #d8d7d5;
+  /* Faixa de exemplo: igual nos dois temas */
+  --aviso-fundo: #faf0df;
+  --aviso-borda: #936228;
+  --aviso-texto: #201f1d;
+  /* Estado */
   --verde: #1d6b3a;
   --amarelo: #7d5800;
   --vermelho: #b3261e;
@@ -13,18 +30,24 @@
   --barra-amarela: #e0a810;
   --barra-vermelha: #d63b33;
   --barra-cinza: #c9cfcc;
-  --aviso-fundo: #fff4d6;
-  --aviso-borda: #e0c068;
-  --foco: #1b5fbf;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fundo: #111513;
+    /* Marca: o laranja que vai em texto ou borda é o claro; o hexágono continua o da marca. */
+    --marca-rotulo: var(--tinta);
+    --acao: #ea874c;
+    --acao-hover: #ea874c;
+    --acao-suave: #2a2e2c;
+    /* Neutros */
+    --tinta: #e7ece9;
+    --apoio: #b2b0ae;
+    --discreto: #918f8d;
+    --chao: #111513;
     --cartao: #1a1f1d;
-    --borda: #2e3532;
-    --texto: #e7ece9;
-    --suave: #a6b0ab;
+    --linha: #2e3532;
+    --linha-forte: #3b4340;
+    /* Estado */
     --verde: #6fd394;
     --amarelo: #f2c14e;
     --vermelho: #ff8a80;
@@ -33,9 +56,6 @@
     --barra-amarela: #e0b030;
     --barra-vermelha: #ef5b52;
     --barra-cinza: #3b4340;
-    --aviso-fundo: #2e2a1c;
-    --aviso-borda: #6b5a2a;
-    --foco: #7fb0ff;
   }
 }
 
@@ -51,8 +71,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--fundo);
-  color: var(--texto);
+  background: var(--chao);
+  color: var(--tinta);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
@@ -77,16 +97,33 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.topo-texto {
+  min-width: 0;
+}
+
+/* O rótulo da marca, em maiúsculas como no logo, com o hexágono laranja (só forma). */
 .marca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--verde);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--marca-rotulo);
+}
+
+.hexagono {
+  flex: none;
+  width: 0.875rem;
+  height: 1rem;
+  background: var(--marca-laranja);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
 
 .titulo {
-  margin: 0.125rem 0 0;
+  margin: 0.25rem 0 0;
   font-size: 1.5rem;
   line-height: 1.25;
 }
@@ -95,20 +132,31 @@ body {
   flex: none;
   font: inherit;
   font-size: 0.875rem;
-  color: var(--texto);
+  font-weight: 600;
+  color: var(--acao);
   background: var(--cartao);
-  border: 1px solid var(--borda);
+  border: 1px solid var(--acao);
   border-radius: 999px;
   padding: 0.375rem 0.875rem;
   cursor: pointer;
 }
 
 .idioma:hover {
-  border-color: var(--suave);
+  color: var(--acao-hover);
+  border-color: var(--acao-hover);
+  background: var(--acao-suave);
+}
+
+a {
+  color: var(--acao);
+}
+
+a:hover {
+  color: var(--acao-hover);
 }
 
 :focus-visible {
-  outline: 2px solid var(--foco);
+  outline: 2px solid var(--acao);
   outline-offset: 2px;
 }
 
@@ -119,7 +167,7 @@ body {
   border: 1px dashed var(--aviso-borda);
   border-radius: 0.5rem;
   background: var(--aviso-fundo);
-  color: var(--texto);
+  color: var(--aviso-texto);
   font-size: 0.9375rem;
 }
 
@@ -151,7 +199,7 @@ body {
 /* Cartão das linhas */
 .cartao {
   background: var(--cartao);
-  border: 1px solid var(--borda);
+  border: 1px solid var(--linha-forte);
   border-radius: 0.5rem;
   padding: 0.25rem 1rem;
   margin-bottom: 2rem;
@@ -161,7 +209,7 @@ body {
   margin: 0.75rem 0 0;
   text-align: right;
   font-size: 0.8125rem;
-  color: var(--suave);
+  color: var(--discreto);
 }
 
 .linhas {
@@ -172,7 +220,7 @@ body {
 
 .linha {
   padding: 1rem 0;
-  border-bottom: 1px solid var(--borda);
+  border-bottom: 1px solid var(--linha);
 }
 
 .linha:last-child {
@@ -201,7 +249,7 @@ body {
 
 .linha-verificado {
   font-size: 0.875rem;
-  color: var(--suave);
+  color: var(--apoio);
   overflow-wrap: anywhere;
 }
 
@@ -279,7 +327,7 @@ body {
   gap: 0.5rem;
   margin-top: 0.5rem;
   font-size: 0.8125rem;
-  color: var(--suave);
+  color: var(--discreto);
 }
 
 .linha-pct {
@@ -294,7 +342,7 @@ body {
 }
 
 .incidentes-nenhum {
-  color: var(--suave);
+  color: var(--apoio);
 }
 
 .incidentes-lista {
@@ -305,7 +353,7 @@ body {
 
 .incidente {
   background: var(--cartao);
-  border: 1px solid var(--borda);
+  border: 1px solid var(--linha-forte);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -327,7 +375,7 @@ body {
   gap: 0.25rem 1rem;
   margin: 0.25rem 0 0.75rem;
   font-size: 0.875rem;
-  color: var(--suave);
+  color: var(--apoio);
 }
 
 .incidente-tipo {
@@ -346,7 +394,7 @@ body {
   list-style: none;
   margin: 0;
   padding: 0 0 0 0.75rem;
-  border-left: 2px solid var(--borda);
+  border-left: 2px solid var(--linha);
 }
 
 .atualizacao + .atualizacao {
@@ -362,7 +410,7 @@ body {
 }
 
 .atualizacao-cabeca time {
-  color: var(--suave);
+  color: var(--discreto);
 }
 
 .atualizacao-texto {
@@ -374,7 +422,7 @@ body {
 .rodape {
   margin-top: 2rem;
   font-size: 0.875rem;
-  color: var(--suave);
+  color: var(--apoio);
 }
 
 .rodape p {

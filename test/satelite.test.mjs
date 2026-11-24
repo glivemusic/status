@@ -129,6 +129,64 @@ test('leituras repetidas do mesmo fato contam 1: contagem, dia e verificado_em',
   assert.equal(outra.dias.satelite['2026-11-23'].feitas, 1);
 });
 
+test('D15: verificado_em igual ao maior já visto não conta (nem escrito de outro jeito)', async () => {
+  const { estado, dias, incidentes, saidas } = await rodar([
+    ['degradado', F.b],
+    ['degradado', F.b],
+    ['degradado', '2026-11-23T09:00:00-03:00'], // o mesmo instante de F.b
+  ]);
+  assert.equal(dias.satelite['2026-11-23'].feitas, 1);
+  assert.equal(estado.linhas.satelite.degradadas_seguidas, 1);
+  assert.equal(doSatelite(incidentes).length, 0, 'o mesmo fato lido de novo não abre');
+  assert.deepEqual(saidas.map((s) => s.repetidas.includes('satelite')), [false, true, true]);
+});
+
+test('D15: verificado_em menor (o cache que volta) não conta, não abre e não substitui o maior', async () => {
+  // O maior é F.c (ok); volta F.b degradado e depois F.a degradado: nada conta, nada abre.
+  const { estado, dias, incidentes, saidas } = await rodar([['ok', F.c], ['degradado', F.b], ['degradado', F.a]]);
+  assert.deepEqual(dias.satelite['2026-11-23'], { feitas: 1, ok: 1, degradado: 0, fora: 0, minutos_fora: 0 });
+  assert.equal(estado.linhas.satelite.verificado_em, F.c, 'o «Verificado há» segue do maior');
+  assert.equal(estado.linhas.satelite.estado, 'ok', 'o fato velho não troca o estado da linha');
+  assert.equal(estado.linhas.satelite.boas_seguidas, 1);
+  assert.equal(estado.linhas.satelite.degradadas_seguidas, 0);
+  assert.equal(doSatelite(incidentes).length, 0);
+  assert.deepEqual(saidas.map((s) => s.repetidas.includes('satelite')), [false, true, true]);
+
+  // Com incidente aberto, um ok velho não fecha.
+  const aberto = await rodar([['degradado', F.b], ['degradado', F.c], ['ok', F.a]]);
+  const [i] = doSatelite(aberto.incidentes);
+  assert.equal(i.fim, null, 'o ok mais velho não fecha');
+  assert.equal(aberto.estado.linhas.satelite.verificado_em, F.c);
+  assert.equal(aberto.estado.linhas.satelite.estado, 'degradado');
+});
+
+test('D15: depois de um sem_dado passageiro, a leitura do mesmo fato (ou de um mais velho) volta ao estado do último fato', async () => {
+  const geral = (estado) => estadoGeral(config.linhas.map((l) => estado.linhas[l.id].estado), estado.verificado_em, estado.verificado_em);
+  for (const volta of [['degradado', F.b], ['ok', F.a]]) {
+    const { estado, dias, incidentes, saidas } = await rodar([['degradado', F.a], ['degradado', F.b], 'rede', volta]);
+    assert.equal(saidas[2].estado.linhas.satelite.estado, 'sem_dado', 'o sem_dado passageiro aparece');
+    const linha = estado.linhas.satelite;
+    assert.equal(linha.estado, 'degradado', `volta ao último fato contado (${volta})`);
+    assert.equal(linha.verificado_em, F.b);
+    assert.equal(linha.degradadas_seguidas, 2);
+    const [i] = doSatelite(incidentes);
+    assert.equal(i.fim, null, 'o incidente continua aberto');
+    assert.equal(linha.incidente, i.id);
+    assert.deepEqual(dias.satelite['2026-11-23'], { feitas: 2, ok: 0, degradado: 2, fora: 0, minutos_fora: 0 }, 'nada conta no dia');
+    assert.equal(saidas[3].repetidas.includes('satelite'), true);
+    assert.equal(geral(estado), 'degradado');
+  }
+});
+
+test('D15: verificado_em maior conta, mesmo depois de um que voltou', async () => {
+  const { estado, dias, incidentes, saidas } = await rodar([['ok', F.b], ['ok', F.a], ['degradado', F.c], ['degradado', F.d]]);
+  assert.deepEqual(dias.satelite['2026-11-23'], { feitas: 3, ok: 1, degradado: 2, fora: 0, minutos_fora: 0 });
+  assert.equal(estado.linhas.satelite.verificado_em, F.d);
+  const [i] = doSatelite(incidentes);
+  assert.equal(i.inicio, F.c);
+  assert.deepEqual(saidas.map((s) => s.repetidas.includes('satelite')), [false, true, false, false]);
+});
+
 test('1 fato degradado não abre (nem lido várias vezes); 2 fatos distintos abrem «degradado»', async () => {
   const um = await rodar([['degradado', F.a], ['degradado', F.a], ['degradado', F.a], ['degradado', F.a]]);
   assert.equal(doSatelite(um.incidentes).length, 0);

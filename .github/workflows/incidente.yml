@@ -51,8 +51,9 @@ on:
 
 permissions: {}
 
+# D13: grupo próprio; a checagem tem o seu e nenhum espera nem cancela o outro.
 concurrency:
-  group: dados
+  group: incidente
   cancel-in-progress: false
 
 defaults:
@@ -73,18 +74,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Preparar o ramo dados
-        run: |
-          if git ls-remote --exit-code --heads origin dados > /dev/null; then
-            git fetch --no-tags origin +refs/heads/dados:refs/remotes/origin/dados
-            git worktree add --detach dados-ramo refs/remotes/origin/dados
-          else
-            # Ramo novo: começa vazio.
-            git worktree add --detach dados-ramo
-            git -C dados-ramo checkout -q --orphan dados-novo
-            git -C dados-ramo rm -rfq .
-          fi
-
+      # Confere as entradas antes de qualquer git; depois, em cada tentativa: busca o dados, aplica, commit e
+      # push (D13). O token só chega ao push.
       - name: Conferir e gravar o incidente
         env:
           ACAO: ${{ inputs.acao }}
@@ -96,24 +87,11 @@ jobs:
           TITULO_ES: ${{ inputs.titulo_es }}
           TEXTO_PT: ${{ inputs.texto_pt }}
           TEXTO_ES: ${{ inputs.texto_es }}
-        run: node scripts/incidente.mjs --dados dados-ramo --config config/alvos.json
-
-      - name: Gravar no ramo dados
-        env:
-          ACAO: ${{ inputs.acao }}
           GH_TOKEN: ${{ github.token }}
-        run: |
-          # O token só existe neste passo e só no comando do push.
-          enviar() {
-            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')" \
-              push "$@" origin HEAD:refs/heads/dados
-          }
-          cd dados-ramo
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -q -m "Incidente: $ACAO ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-          enviar
+          REMOTO: https://github.com/${{ github.repository }}
+        run: >-
+          node scripts/incidente.mjs --config config/alvos.json
+          --arvore "$RUNNER_TEMP/dados-ramo" --remoto "$REMOTO"
 
   publicar:
     needs: gravar

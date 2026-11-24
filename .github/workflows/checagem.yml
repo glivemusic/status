@@ -8,8 +8,9 @@ on:
 
 permissions: {}
 
+# D13: grupo próprio; o incidente tem o seu e nenhum espera nem cancela o outro.
 concurrency:
-  group: dados
+  group: checagem
   cancel-in-progress: false
 
 defaults:
@@ -23,7 +24,7 @@ jobs:
     permissions:
       contents: write
     outputs:
-      publicar: ${{ steps.checar.outputs.publicar }}
+      publicar: ${{ steps.gravar.outputs.publicar }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -32,55 +33,19 @@ jobs:
         with:
           node-version: 22
 
-      - name: Preparar o ramo dados
-        id: ramo
-        run: |
-          if git ls-remote --exit-code --heads origin dados > /dev/null; then
-            git fetch --no-tags origin +refs/heads/dados:refs/remotes/origin/dados
-            git worktree add --detach dados-ramo refs/remotes/origin/dados
-            echo "existe=true" >> "$GITHUB_OUTPUT"
-          else
-            # Ramo novo: começa vazio.
-            git worktree add --detach dados-ramo
-            git -C dados-ramo checkout -q --orphan dados-novo
-            git -C dados-ramo rm -rfq .
-            echo "existe=false" >> "$GITHUB_OUTPUT"
-          fi
+      # A chamada às rotas acontece uma vez só; a medida fica fora da árvore do ramo.
+      - name: Medir
+        run: node scripts/checar.mjs --config config/alvos.json --medida "$RUNNER_TEMP/medida.json"
 
-      - name: Checar
-        id: checar
-        run: node scripts/checar.mjs --dados dados-ramo --config config/alvos.json
-
+      # Em cada tentativa: busca o dados, aplica a medida, commit e push (D13).
       - name: Gravar no ramo dados
+        id: gravar
         env:
-          EXISTE: ${{ steps.ramo.outputs.existe }}
           GH_TOKEN: ${{ github.token }}
-        run: |
-          # O token só existe neste passo e só no comando do push.
-          enviar() {
-            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')" \
-              push "$@" origin HEAD:refs/heads/dados
-          }
-          cd dados-ramo
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          agora="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          if [ "$EXISTE" != true ]; then
-            git commit -q -m "Dados: começo ($agora)"
-            enviar
-            exit 0
-          fi
-          # Uma vez por dia (o commit mais velho é de outro dia de Assunção), o ramo vira um commit só.
-          mais_velho="$(git log --max-parents=0 --format=%cI HEAD | tail -n 1)"
-          if [ "$(TZ=America/Asuncion date -d "$mais_velho" +%F)" != "$(TZ=America/Asuncion date +%F)" ]; then
-            git checkout -q --orphan dados-recriado
-            git commit -q -m "Dados: recriados ($agora)"
-            enviar --force
-          else
-            git commit -q -m "Checagem ($agora)"
-            enviar
-          fi
+          REMOTO: https://github.com/${{ github.repository }}
+        run: >-
+          node scripts/gravar-dados.mjs --config config/alvos.json --medida "$RUNNER_TEMP/medida.json"
+          --arvore "$RUNNER_TEMP/dados-ramo" --remoto "$REMOTO"
 
   publicar:
     needs: checar

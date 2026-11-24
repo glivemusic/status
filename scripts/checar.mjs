@@ -1,52 +1,31 @@
-// Uma checagem: node scripts/checar.mjs --dados <dir> --config config/alvos.json
-// Lê estado.json, dias.json e incidentes.json de <dir>, roda a lógica de lib/ e grava de volta.
-// A linha do satélite (D11) vem do mesmo corpo do app e só conta quando o fato é novo.
-// Escreve publicar=true|false em $GITHUB_OUTPUT, quando existir.
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+// A medida de uma checagem (D13): node scripts/checar.mjs --medida <arquivo> [--config config/alvos.json]
+// Chama os alvos uma vez só e grava { instante, resultados, fatos } em <arquivo> (no Actions, em $RUNNER_TEMP,
+// fora da árvore do ramo). Quem aplica a medida aos dados e grava no ramo é scripts/gravar-dados.mjs.
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as esperarMs } from 'node:timers/promises';
-import { executarChecagem } from '../lib/checagem.mjs';
-import { TEXTOS } from '../site/textos.mjs';
+import { medirChecagem } from '../lib/checagem.mjs';
 
 const { values } = parseArgs({
-  options: { dados: { type: 'string' }, config: { type: 'string', default: 'config/alvos.json' } },
+  options: { medida: { type: 'string' }, config: { type: 'string', default: 'config/alvos.json' } },
 });
-if (!values.dados) {
-  console.error('Uso: node scripts/checar.mjs --dados <dir> [--config config/alvos.json]');
+if (!values.medida) {
+  console.error('Uso: node scripts/checar.mjs --medida <arquivo> [--config config/alvos.json]');
   process.exit(2);
 }
 
-function lerJson(caminho, padrao) {
-  return existsSync(caminho) ? JSON.parse(readFileSync(caminho, 'utf8')) : padrao;
-}
-function gravarJson(caminho, valor) {
-  writeFileSync(caminho, `${JSON.stringify(valor, null, 2)}\n`);
-}
-
 const config = JSON.parse(readFileSync(values.config, 'utf8'));
-mkdirSync(values.dados, { recursive: true });
-const arquivo = (nome) => join(values.dados, nome);
-
-const saida = await executarChecagem({
+const medida = await medirChecagem({
   config,
-  estado: lerJson(arquivo('estado.json'), {}),
-  dias: lerJson(arquivo('dias.json'), {}),
-  incidentes: lerJson(arquivo('incidentes.json'), { incidentes: [] }).incidentes,
   fetch: globalThis.fetch,
   relogio: Date.now,
   esperar: (ms) => esperarMs(ms),
-  textos: TEXTOS,
 });
 
-gravarJson(arquivo('estado.json'), saida.estado);
-gravarJson(arquivo('dias.json'), saida.dias);
-gravarJson(arquivo('incidentes.json'), { incidentes: saida.incidentes });
+mkdirSync(dirname(values.medida), { recursive: true });
+writeFileSync(values.medida, `${JSON.stringify(medida, null, 2)}\n`);
 
-// O log do Actions é público: só o id da linha e o estado (e, na linha por fato, se a leitura não contou).
-for (const [linha, resultado] of Object.entries(saida.resultados)) {
-  const repetida = saida.repetidas.includes(linha) ? ' (não contou: fato repetido ou sem dado)' : '';
-  console.log(`${linha}: ${resultado}${repetida}`);
-}
-console.log(`publicar=${saida.publicar}`);
-if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `publicar=${saida.publicar}\n`);
+// O log do Actions é público: só o id da linha e o estado.
+for (const [linha, resultado] of Object.entries(medida.resultados)) console.log(`${linha}: ${resultado}`);
+console.log(`Medida de ${medida.instante} gravada.`);
