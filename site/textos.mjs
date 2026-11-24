@@ -1,4 +1,4 @@
-// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11, D17, D19, D21 e as chaves da sessão
+// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11, D17, D19, D21, D23 e as chaves da sessão
 // principal).
 // Sem import: os scripts também leem este arquivo.
 
@@ -30,6 +30,16 @@ export const TEXTOS = {
     'barras.resumo_medindo': 'Últimos 90 dias: medindo desde {data}',
     'barra.dica': '{dia}: {pct} no ar · {minutos} min fora do ar',
     'barra.nome': '{dia}: {pct} no ar, {minutos} min fora do ar',
+    'barra.dica_sem_incidente': '{dia}: {pct} no ar',
+    'barra.nome_sem_incidente': '{dia}: {pct} no ar',
+    'barra.dica_falhas_isoladas': '{dia}: {pct} no ar · falhas isoladas sem incidente',
+    'barra.nome_falhas_isoladas': '{dia}: {pct} no ar, falhas isoladas sem incidente',
+    'barra.dica_instabilidade_isolada': '{dia}: {pct} no ar · instabilidade isolada sem incidente',
+    'barra.nome_instabilidade_isolada': '{dia}: {pct} no ar, instabilidade isolada sem incidente',
+    'barra.dica_falhas_e_instabilidade':
+      '{dia}: {pct} no ar · falhas isoladas sem incidente · instabilidade isolada sem incidente',
+    'barra.nome_falhas_e_instabilidade':
+      '{dia}: {pct} no ar, falhas isoladas sem incidente, instabilidade isolada sem incidente',
     'barra.sem_dado': '{dia}: sem dados',
     'barra.data': '{d} de {mes}',
     meses: 'jan. fev. mar. abr. mai. jun. jul. ago. set. out. nov. dez.',
@@ -83,6 +93,16 @@ export const TEXTOS = {
     'barras.resumo_medindo': 'Últimos 90 días: midiendo desde {data}',
     'barra.dica': '{dia}: {pct} en línea · {minutos} min fuera de línea',
     'barra.nome': '{dia}: {pct} en línea, {minutos} min fuera de línea',
+    'barra.dica_sem_incidente': '{dia}: {pct} en línea',
+    'barra.nome_sem_incidente': '{dia}: {pct} en línea',
+    'barra.dica_falhas_isoladas': '{dia}: {pct} en línea · fallas aisladas sin incidente',
+    'barra.nome_falhas_isoladas': '{dia}: {pct} en línea, fallas aisladas sin incidente',
+    'barra.dica_instabilidade_isolada': '{dia}: {pct} en línea · inestabilidad aislada sin incidente',
+    'barra.nome_instabilidade_isolada': '{dia}: {pct} en línea, inestabilidad aislada sin incidente',
+    'barra.dica_falhas_e_instabilidade':
+      '{dia}: {pct} en línea · fallas aisladas sin incidente · inestabilidad aislada sin incidente',
+    'barra.nome_falhas_e_instabilidade':
+      '{dia}: {pct} en línea, fallas aisladas sin incidente, inestabilidad aislada sin incidente',
     'barra.sem_dado': '{dia}: sin datos',
     'barra.data': '{d} de {mes}',
     meses: 'ene. feb. mar. abr. may. jun. jul. ago. sep. oct. nov. dic.',

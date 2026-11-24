@@ -18,6 +18,7 @@ import {
   linhaPorFato,
   medindoDesde,
   temIncidenteDegradadoNoDia,
+  temIncidenteNoDia,
 } from './lib/dias.mjs';
 import { estadoAtual, incidentesRecentes, partesDaDuracao } from './lib/incidentes.mjs';
 import { estadoGeral, estadosDoGeral } from './lib/geral.mjs';
@@ -137,12 +138,29 @@ function desenharBarras(linha, instante, dica, quantas) {
     const valores = comDado
       ? { dia: data, pct: disponibilidade([registro], { porFato }), minutos: registro.minutos_fora }
       : { dia: data };
+    // D23: sem incidente que toque o dia e sem minutos fora, só o percentual; com checagem `fora`, «falhas isoladas
+    // sem incidente»; na linha por fato (onde o degradado não conta como no ar, como em `disponibilidade`), com
+    // checagem `degradado`, «instabilidade isolada sem incidente»; com as duas, primeiro as falhas. Sem a contagem.
+    // Com incidente, os minutos fora como antes.
+    const semIncidente =
+      comDado && (registro.minutos_fora ?? 0) === 0 && !temIncidenteNoDia(dados.incidentes, linha.id, dia, instante);
+    const falhas = semIncidente && registro.fora > 0;
+    const instabilidade = semIncidente && porFato && (registro.degradado ?? 0) > 0;
+    const sufixo = !semIncidente
+      ? ''
+      : falhas && instabilidade
+        ? '_falhas_e_instabilidade'
+        : falhas
+          ? '_falhas_isoladas'
+          : instabilidade
+            ? '_instabilidade_isolada'
+            : '_sem_incidente';
     const botao = el('button', `barra barra-${cor}`);
     botao.type = 'button';
     // Um único ponto de parada por linha: hoje, até as setas mudarem o dia.
     botao.tabIndex = n === 0 ? 0 : -1;
-    botao.setAttribute('aria-label', comDado ? t('barra.nome', valores) : t('barra.sem_dado', valores));
-    botao.dataset.dica = comDado ? t('barra.dica', valores) : t('barra.sem_dado', valores);
+    botao.setAttribute('aria-label', comDado ? t(`barra.nome${sufixo}`, valores) : t('barra.sem_dado', valores));
+    botao.dataset.dica = comDado ? t(`barra.dica${sufixo}`, valores) : t('barra.sem_dado', valores);
     botoes.push(botao);
     barras.append(botao);
   }
