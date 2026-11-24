@@ -195,8 +195,13 @@ b {
   color: var(--marca-rotulo);
 }
 
-.marca-simbolo {
+/* D22: o <picture> (claro e escuro) é o item do flex e não encolhe. */
+.marca picture {
   flex: none;
+}
+
+/* Em bloco, sem vão de linha embaixo do símbolo. */
+.marca-simbolo {
   display: block;
   width: 32px;
   height: 32px;

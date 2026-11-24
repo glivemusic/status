@@ -172,6 +172,7 @@ test('o site montado leva só o que a página usa', () => {
     'lib/incidentes.mjs',
     'lib/tempo.mjs',
     'lib/texto.mjs',
+    'marca/simbolo-escuro.svg',
     'marca/simbolo.svg',
     'pagina.mjs',
     'textos.mjs',
@@ -349,7 +350,7 @@ test('o catálogo tem as mesmas chaves nos dois idiomas, sem texto vazio, com os
   assert.equal(es['barra.nome'], '{dia}: {pct} en línea, {minutos} min fuera de línea');
 });
 
-test('D19: as fontes, a licença, o favicon e o símbolo vão ao site montado, iguais aos do repositório', () => {
+test('D19 e D22: as fontes, a licença, o favicon e os dois símbolos vão ao site montado, iguais aos do repositório', () => {
   const dir = temporaria();
   node('scripts/montar-site.mjs', '--fonte', 'exemplo', '--saida', dir);
   const fixos = [
@@ -357,8 +358,9 @@ test('D19: as fontes, a licença, o favicon e o símbolo vão ao site montado, i
     'fontes/LICENSE.txt',
     'favicon.svg',
     'marca/simbolo.svg',
+    'marca/simbolo-escuro.svg',
   ];
-  assert.equal(fixos.length, 9);
+  assert.equal(fixos.length, 10);
   for (const nome of fixos) {
     const publicado = readFileSync(join(dir, nome));
     assert.ok(publicado.length > 0, nome);
@@ -376,7 +378,9 @@ test('D19: as fontes, a licença, o favicon e o símbolo vão ao site montado, i
     assert.equal(textoParaConferir(nome, 'https://x'), 'https://x', nome);
   }
   assert.equal(textoParaConferir('a.svg', '<svg xmlns="http://www.w3.org/2000/svg"><a href="https://x"/></svg>'), '<svg ><a href="https://x"/></svg>');
-  assert.equal(termoProibido(textoParaConferir('marca/simbolo.svg', readFileSync(join(dir, 'marca', 'simbolo.svg'), 'utf8'))), null);
+  for (const nome of ['simbolo.svg', 'simbolo-escuro.svg']) {
+    assert.equal(termoProibido(textoParaConferir(`marca/${nome}`, readFileSync(join(dir, 'marca', nome), 'utf8'))), null, nome);
+  }
   assert.equal(termoProibido(textoParaConferir('favicon.svg', readFileSync(join(dir, 'favicon.svg'), 'utf8'))), null);
 });
 test('nenhum arquivo de site/ usa innerHTML; o HTML tem a CSP, o referrer e o robots de D9', () => {

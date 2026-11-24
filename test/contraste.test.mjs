@@ -269,7 +269,14 @@ test('a marca: «Agronomy Center» sem maiúsculas, com o símbolo de 32 px a 8 
   assert.match(marca, /color:\s*var\(--marca-rotulo\)/);
   assert.match(regra('.marca-simbolo'), /width:\s*32px/);
   assert.match(regra('.marca-simbolo'), /height:\s*32px/);
-  assert.match(HTML, /<img class="marca-simbolo" src="marca\/simbolo\.svg" alt="" width="32" height="32">/);
+  // D22: o símbolo oficial, claro e escuro, num <picture>; o nome em texto logo depois.
+  assert.match(
+    HTML,
+    /<p class="marca"><picture><source media="\(prefers-color-scheme: dark\)" srcset="marca\/simbolo-escuro\.svg"><img class="marca-simbolo" src="marca\/simbolo\.svg" alt="" width="32" height="32"><\/picture><span id="marca"><\/span><\/p>/,
+  );
+  assert.match(regra('.marca picture'), /flex:\s*none/);
+  assert.ok(!/display:/.test(regra('.marca picture')), 'sem display no <picture> (item de flex já é bloco)');
+  assert.match(regra('.marca-simbolo'), /display:\s*block/);
   assert.ok(!/hexagono|clip-path/.test(CSS + HTML), 'o hexágono de CSS saiu');
   assert.ok(!/\sstyle=/.test(HTML), 'sem estilo em linha (a CSP o bloqueia)');
   // O laranja da marca nunca vai em texto.

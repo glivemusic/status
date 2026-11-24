@@ -68,6 +68,7 @@ const DO_SITE = [
   'textos.mjs',
   'favicon.svg',
   'marca/simbolo.svg',
+  'marca/simbolo-escuro.svg',
   LICENCA_DAS_FONTES,
   ...FONTES_DO_SITE,
 ];
