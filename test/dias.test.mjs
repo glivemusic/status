@@ -1,4 +1,4 @@
-// D5 e D21: dias de Assunção, disponibilidade, cor da barra, «medindo desde» e cortes.
+// D5, D21 e D23: dias de Assunção, disponibilidade, cor da barra, «medindo desde» e cortes.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
@@ -11,6 +11,8 @@ import {
   medindoDesde,
   minutosNoDia,
   registrarChecagem,
+  temIncidenteDegradadoNoDia,
+  temIncidenteNoDia,
 } from '../lib/dias.mjs';
 import { cortarIncidentes, incidentesRecentes, partesDaDuracao } from '../lib/incidentes.mjs';
 import { dataDeAssuncao, diaDeAssuncao, horaDeAssuncao, inicioDoDia, somarDias } from '../lib/tempo.mjs';
@@ -133,6 +135,27 @@ test('minutos fora: só incidentes «fora» da linha, recortados no dia; aberto 
   const dias = { app: { '2026-11-23': { feitas: 288, ok: 284, degradado: 0, fora: 4, minutos_fora: 0 } } };
   atualizarMinutosFora(dias, incidentes, agora);
   assert.equal(dias.app['2026-11-23'].minutos_fora, 20);
+});
+
+test('D23: o dia tem incidente se algum, «fora» ou «degradado», da linha o toca; aberto vale até agora', () => {
+  const incidentes = [
+    { tipo: 'degradado', linhas: ['app'], inicio: '2026-11-20T12:00:00Z', fim: '2026-11-20T13:00:00Z' },
+    // 02:40Z a 03:20Z de 24/11: toca o dia 23 e o 24 de Assunção.
+    { tipo: 'fora', linhas: ['app', 'login'], inicio: '2026-11-24T02:40:00Z', fim: '2026-11-24T03:20:00Z' },
+    { tipo: 'fora', linhas: ['banco'], inicio: '2026-11-24T10:00:00Z', fim: null },
+  ];
+  const agora = '2026-11-24T10:35:00Z';
+  assert.equal(temIncidenteNoDia(incidentes, 'app', '2026-11-20', agora), true, 'degradado');
+  assert.equal(temIncidenteNoDia(incidentes, 'app', '2026-11-23', agora), true, 'fora, no fim do dia');
+  assert.equal(temIncidenteNoDia(incidentes, 'app', '2026-11-24', agora), true, 'fora, no começo do dia');
+  assert.equal(temIncidenteNoDia(incidentes, 'login', '2026-11-23', agora), true, 'o incidente de duas linhas');
+  assert.equal(temIncidenteNoDia(incidentes, 'app', '2026-11-21', agora), false, 'dia sem incidente');
+  assert.equal(temIncidenteNoDia(incidentes, 'login', '2026-11-20', agora), false, 'o incidente de outra linha');
+  assert.equal(temIncidenteNoDia(incidentes, 'banco', '2026-11-24', agora), true, 'aberto');
+  assert.equal(temIncidenteNoDia(incidentes, 'banco', '2026-11-25', agora), false, 'aberto não passa de agora');
+  // O existente continua só com «degradado».
+  assert.equal(temIncidenteDegradadoNoDia(incidentes, 'app', '2026-11-23', agora), false);
+  assert.equal(temIncidenteDegradadoNoDia(incidentes, 'app', '2026-11-20', agora), true);
 });
 
 test('corte dos 90 dias: o mais velho sai', () => {

@@ -286,7 +286,10 @@ test('D19: 90 barras num grupo com o resumo, um só ponto de parada (hoje) e o n
   assert.deepEqual(barras.map((b) => b.tabIndex).filter((t) => t === 0).length, 1);
   assert.equal(barras.at(-1).tabIndex, 0, 'hoje é a parada de Tab');
   for (const b of barras) {
-    assert.match(b.getAttribute('aria-label'), /^\d{1,2} de [a-z]{3}\.: (\d+,\d\d % no ar, \d+ min fora do ar|sem dados)$/);
+    assert.match(
+      b.getAttribute('aria-label'),
+      /^\d{1,2} de [a-z]{3}\.: (\d+,\d\d % no ar(, \d+ min fora do ar|, falhas isoladas sem incidente)?|sem dados)$/,
+    );
     assert.equal(b.title, undefined, 'sem title (a dica é a da página)');
   }
   assert.equal(barras.at(-1).getAttribute('aria-label').slice(0, 11), '23 de nov.:');
@@ -391,6 +394,123 @@ test('D21: com 7 dias medidos, o percentual de volta e sem «medindo desde»; se
   assert.equal(vazio.rodape[1], '— de disponibilidade');
   assert.equal(vazio.grupo.getAttribute('aria-label'), 'Últimos 90 dias: — de disponibilidade');
   assert.ok(vazio.barras.every((b) => b.className === 'barra barra-cinza'));
+});
+
+// D23: dados reais do app com um dia por caso e os incidentes que tocam (ou não) cada um.
+function dadosD23() {
+  const fonte = dadosReais();
+  const app = {
+    // Minutos fora sem incidente que toque o dia (dado inconsistente, como incidente apagado à mão).
+    '2026-11-17': { feitas: 100, ok: 80, degradado: 0, fora: 20, minutos_fora: 40 },
+    // Sem `minutos_fora` no registro e sem incidente: conta como 0.
+    '2026-11-18': { feitas: 100, ok: 100, degradado: 0, fora: 0 },
+    // Incidente «degradado» que toca o dia, sem minutos fora.
+    '2026-11-19': { feitas: 100, ok: 90, degradado: 10, fora: 0, minutos_fora: 0 },
+    // Incidente «fora» de 30 min.
+    '2026-11-20': { feitas: 100, ok: 70, degradado: 0, fora: 30, minutos_fora: 30 },
+    // Sem incidente da linha (só um de outra linha) e sem checagem fora.
+    '2026-11-21': { feitas: 100, ok: 100, degradado: 0, fora: 0, minutos_fora: 0 },
+    // Sem incidente, com checagens fora que não abriram incidente: sem nenhuma `ok`, vermelho (D21).
+    '2026-11-22': { feitas: 3, ok: 0, degradado: 0, fora: 3, minutos_fora: 0 },
+    // Sem incidente, com uma checagem fora isolada.
+    '2026-11-23': { feitas: 100, ok: 99, degradado: 0, fora: 1, minutos_fora: 0 },
+  };
+  writeFileSync(join(fonte, 'dias.json'), JSON.stringify({ app }));
+  const texto = { 'pt-BR': 'Teste', 'es-PY': 'Prueba' };
+  const incidente = (id, linhas, tipo, inicio, fim) => ({
+    id,
+    linhas,
+    tipo,
+    inicio,
+    fim,
+    origem: 'manual',
+    titulo: texto,
+    atualizacoes: [{ em: inicio, estado: 'investigando', texto }],
+  });
+  writeFileSync(
+    join(fonte, 'incidentes.json'),
+    JSON.stringify({
+      incidentes: [
+        incidente('20261119-1500-manual', ['app'], 'degradado', '2026-11-19T15:00:00Z', '2026-11-19T16:00:00Z'),
+        incidente('20261120-1500-manual', ['app'], 'fora', '2026-11-20T15:00:00Z', '2026-11-20T15:30:00Z'),
+        incidente('20261121-1500-manual', ['banco'], 'fora', '2026-11-21T15:00:00Z', '2026-11-21T16:00:00Z'),
+      ],
+    }),
+  );
+  return fonte;
+}
+
+function barraDoDia(pagina, rotulo) {
+  const barra = barrasDaLinha(pagina, 0).barras.find((b) => b.getAttribute('aria-label').startsWith(`${rotulo}:`));
+  assert.ok(barra, rotulo);
+  return { nome: barra.getAttribute('aria-label'), dica: barra.dataset.dica, classe: barra.className };
+}
+
+test('D23: o dia com incidente mantém os minutos fora do ar, na dica e no nome', async () => {
+  const p = await desenhar(montar(dadosD23()), 'pt-BR');
+  assert.deepEqual(barraDoDia(p, '20 de nov.'), {
+    nome: '20 de nov.: 70,00 % no ar, 30 min fora do ar',
+    dica: '20 de nov.: 70,00 % no ar · 30 min fora do ar',
+    classe: 'barra barra-vermelha',
+  });
+  // Incidente «degradado» também é incidente: os minutos ficam, mesmo 0.
+  assert.deepEqual(barraDoDia(p, '19 de nov.'), {
+    nome: '19 de nov.: 100,00 % no ar, 0 min fora do ar',
+    dica: '19 de nov.: 100,00 % no ar · 0 min fora do ar',
+    classe: 'barra barra-amarela',
+  });
+  // Minutos fora sem incidente que toque o dia: os minutos ficam.
+  assert.deepEqual(barraDoDia(p, '17 de nov.'), {
+    nome: '17 de nov.: 80,00 % no ar, 40 min fora do ar',
+    dica: '17 de nov.: 80,00 % no ar · 40 min fora do ar',
+    classe: 'barra barra-vermelha',
+  });
+});
+
+test('D23: o dia sem incidente e sem checagem fora mostra só o percentual (o incidente de outra linha não conta)', async () => {
+  const p = await desenhar(montar(dadosD23()), 'pt-BR');
+  assert.deepEqual(barraDoDia(p, '21 de nov.'), {
+    nome: '21 de nov.: 100,00 % no ar',
+    dica: '21 de nov.: 100,00 % no ar',
+    classe: 'barra barra-verde',
+  });
+  // `minutos_fora` ausente conta como 0.
+  assert.deepEqual(barraDoDia(p, '18 de nov.'), {
+    nome: '18 de nov.: 100,00 % no ar',
+    dica: '18 de nov.: 100,00 % no ar',
+    classe: 'barra barra-verde',
+  });
+});
+
+test('D23: o dia sem incidente com checagem fora mostra «falhas isoladas sem incidente», sem contagem, nos dois idiomas', async () => {
+  const site = montar(dadosD23());
+  for (const [idioma, casos] of [
+    [
+      'pt-BR',
+      [
+        ['22 de nov.', '0,00 % no ar', 'falhas isoladas sem incidente', 'barra barra-vermelha'],
+        ['23 de nov.', '99,00 % no ar', 'falhas isoladas sem incidente', 'barra barra-verde'],
+      ],
+    ],
+    [
+      'es-PY',
+      [
+        ['22 de nov.', '0,00 % en línea', 'fallas aisladas sin incidente', 'barra barra-vermelha'],
+        ['23 de nov.', '99,00 % en línea', 'fallas aisladas sin incidente', 'barra barra-verde'],
+      ],
+    ],
+  ]) {
+    const p = await desenhar(site, idioma);
+    for (const [rotulo, pct, falhas, classe] of casos) {
+      assert.deepEqual(
+        barraDoDia(p, rotulo),
+        { nome: `${rotulo}: ${pct}, ${falhas}`, dica: `${rotulo}: ${pct} · ${falhas}`, classe },
+        `${idioma} ${rotulo}`,
+      );
+    }
+    // O dia sem incidente e sem fora, também em es-PY.
+    assert.equal(barraDoDia(p, '21 de nov.').dica, idioma === 'pt-BR' ? '21 de nov.: 100,00 % no ar' : '21 de nov.: 100,00 % en línea');
+  }
 });
 
 test('o site com a fonte dados não leva nada de exemplo/', () => {

@@ -18,6 +18,7 @@ import {
   linhaPorFato,
   medindoDesde,
   temIncidenteDegradadoNoDia,
+  temIncidenteNoDia,
 } from './lib/dias.mjs';
 import { estadoAtual, incidentesRecentes, partesDaDuracao } from './lib/incidentes.mjs';
 import { estadoGeral, estadosDoGeral } from './lib/geral.mjs';
@@ -137,12 +138,17 @@ function desenharBarras(linha, instante, dica, quantas) {
     const valores = comDado
       ? { dia: data, pct: disponibilidade([registro], { porFato }), minutos: registro.minutos_fora }
       : { dia: data };
+    // D23: sem incidente que toque o dia e sem minutos fora, só o percentual; com checagem `fora`, «falhas isoladas
+    // sem incidente» (sem a contagem). Com incidente, os minutos fora como antes.
+    const semIncidente =
+      comDado && (registro.minutos_fora ?? 0) === 0 && !temIncidenteNoDia(dados.incidentes, linha.id, dia, instante);
+    const sufixo = !semIncidente ? '' : registro.fora > 0 ? '_falhas_isoladas' : '_sem_incidente';
     const botao = el('button', `barra barra-${cor}`);
     botao.type = 'button';
     // Um único ponto de parada por linha: hoje, até as setas mudarem o dia.
     botao.tabIndex = n === 0 ? 0 : -1;
-    botao.setAttribute('aria-label', comDado ? t('barra.nome', valores) : t('barra.sem_dado', valores));
-    botao.dataset.dica = comDado ? t('barra.dica', valores) : t('barra.sem_dado', valores);
+    botao.setAttribute('aria-label', comDado ? t(`barra.nome${sufixo}`, valores) : t('barra.sem_dado', valores));
+    botao.dataset.dica = comDado ? t(`barra.dica${sufixo}`, valores) : t('barra.sem_dado', valores);
     botoes.push(botao);
     barras.append(botao);
   }
