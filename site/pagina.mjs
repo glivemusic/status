@@ -139,10 +139,22 @@ function desenharBarras(linha, instante, dica, quantas) {
       ? { dia: data, pct: disponibilidade([registro], { porFato }), minutos: registro.minutos_fora }
       : { dia: data };
     // D23: sem incidente que toque o dia e sem minutos fora, só o percentual; com checagem `fora`, «falhas isoladas
-    // sem incidente» (sem a contagem). Com incidente, os minutos fora como antes.
+    // sem incidente»; na linha por fato (onde o degradado não conta como no ar, como em `disponibilidade`), com
+    // checagem `degradado`, «instabilidade isolada sem incidente»; com as duas, primeiro as falhas. Sem a contagem.
+    // Com incidente, os minutos fora como antes.
     const semIncidente =
       comDado && (registro.minutos_fora ?? 0) === 0 && !temIncidenteNoDia(dados.incidentes, linha.id, dia, instante);
-    const sufixo = !semIncidente ? '' : registro.fora > 0 ? '_falhas_isoladas' : '_sem_incidente';
+    const falhas = semIncidente && registro.fora > 0;
+    const instabilidade = semIncidente && porFato && (registro.degradado ?? 0) > 0;
+    const sufixo = !semIncidente
+      ? ''
+      : falhas && instabilidade
+        ? '_falhas_e_instabilidade'
+        : falhas
+          ? '_falhas_isoladas'
+          : instabilidade
+            ? '_instabilidade_isolada'
+            : '_sem_incidente';
     const botao = el('button', `barra barra-${cor}`);
     botao.type = 'button';
     // Um único ponto de parada por linha: hoje, até as setas mudarem o dia.

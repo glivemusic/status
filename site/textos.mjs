@@ -34,6 +34,12 @@ export const TEXTOS = {
     'barra.nome_sem_incidente': '{dia}: {pct} no ar',
     'barra.dica_falhas_isoladas': '{dia}: {pct} no ar · falhas isoladas sem incidente',
     'barra.nome_falhas_isoladas': '{dia}: {pct} no ar, falhas isoladas sem incidente',
+    'barra.dica_instabilidade_isolada': '{dia}: {pct} no ar · instabilidade isolada sem incidente',
+    'barra.nome_instabilidade_isolada': '{dia}: {pct} no ar, instabilidade isolada sem incidente',
+    'barra.dica_falhas_e_instabilidade':
+      '{dia}: {pct} no ar · falhas isoladas sem incidente · instabilidade isolada sem incidente',
+    'barra.nome_falhas_e_instabilidade':
+      '{dia}: {pct} no ar, falhas isoladas sem incidente, instabilidade isolada sem incidente',
     'barra.sem_dado': '{dia}: sem dados',
     'barra.data': '{d} de {mes}',
     meses: 'jan. fev. mar. abr. mai. jun. jul. ago. set. out. nov. dez.',
@@ -91,6 +97,12 @@ export const TEXTOS = {
     'barra.nome_sem_incidente': '{dia}: {pct} en línea',
     'barra.dica_falhas_isoladas': '{dia}: {pct} en línea · fallas aisladas sin incidente',
     'barra.nome_falhas_isoladas': '{dia}: {pct} en línea, fallas aisladas sin incidente',
+    'barra.dica_instabilidade_isolada': '{dia}: {pct} en línea · inestabilidad aislada sin incidente',
+    'barra.nome_instabilidade_isolada': '{dia}: {pct} en línea, inestabilidad aislada sin incidente',
+    'barra.dica_falhas_e_instabilidade':
+      '{dia}: {pct} en línea · fallas aisladas sin incidente · inestabilidad aislada sin incidente',
+    'barra.nome_falhas_e_instabilidade':
+      '{dia}: {pct} en línea, fallas aisladas sin incidente, inestabilidad aislada sin incidente',
     'barra.sem_dado': '{dia}: sin datos',
     'barra.data': '{d} de {mes}',
     meses: 'ene. feb. mar. abr. may. jun. jul. ago. sep. oct. nov. dic.',

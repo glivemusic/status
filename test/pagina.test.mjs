@@ -513,6 +513,120 @@ test('D23: o dia sem incidente com checagem fora mostra «falhas isoladas sem in
   }
 });
 
+// D23 (instabilidade isolada): os dados de exemplo (que mostram a linha por fato, o satélite) com um dia por caso
+// no app e no satélite, e um incidente «degradado» do satélite que toca 20/11.
+function dadosD23Instabilidade() {
+  const fonte = temporaria();
+  writeFileSync(join(fonte, 'estado.json'), readFileSync(join(EXEMPLO, 'estado.json')));
+  const app = {
+    // O degradado conta como no ar no app: sem aviso.
+    '2026-11-22': { feitas: 100, ok: 90, degradado: 10, fora: 0, minutos_fora: 0 },
+    // Com fora e degradado no app: só as falhas, sem o aviso de instabilidade.
+    '2026-11-23': { feitas: 100, ok: 89, degradado: 10, fora: 1, minutos_fora: 0 },
+  };
+  const satelite = {
+    // Incidente «degradado» que toca o dia: os minutos, como antes.
+    '2026-11-20': { feitas: 12, ok: 8, degradado: 4, fora: 0, minutos_fora: 0 },
+    // Sem incidente, sem degradado e sem fora.
+    '2026-11-21': { feitas: 12, ok: 12, degradado: 0, fora: 0, minutos_fora: 0 },
+    // Sem incidente, com checagens degradado isoladas.
+    '2026-11-22': { feitas: 12, ok: 9, degradado: 3, fora: 0, minutos_fora: 0 },
+    // Sem incidente, com fora e degradado isolados.
+    '2026-11-23': { feitas: 10, ok: 8, degradado: 1, fora: 1, minutos_fora: 0 },
+  };
+  writeFileSync(join(fonte, 'dias.json'), JSON.stringify({ exemplo: true, app, satelite }));
+  const texto = { 'pt-BR': 'Teste', 'es-PY': 'Prueba' };
+  const inicio = '2026-11-20T15:00:00Z';
+  writeFileSync(
+    join(fonte, 'incidentes.json'),
+    JSON.stringify({
+      exemplo: true,
+      incidentes: [
+        {
+          id: '20261120-1500-manual',
+          linhas: ['satelite'],
+          tipo: 'degradado',
+          inicio,
+          fim: '2026-11-20T16:00:00Z',
+          origem: 'manual',
+          titulo: texto,
+          atualizacoes: [{ em: inicio, estado: 'investigando', texto }],
+        },
+      ],
+    }),
+  );
+  return fonte;
+}
+
+function barraDaLinhaNoDia(pagina, id, rotulo) {
+  const n = config.linhas.findIndex((l) => l.id === id);
+  const barra = barrasDaLinha(pagina, n).barras.find((b) => b.getAttribute('aria-label').startsWith(`${rotulo}:`));
+  assert.ok(barra, `${id} ${rotulo}`);
+  return { nome: barra.getAttribute('aria-label'), dica: barra.dataset.dica, classe: barra.className };
+}
+
+test('D23: na linha por fato, o dia sem incidente com checagem degradado mostra «instabilidade isolada sem incidente», nos dois idiomas', async () => {
+  const site = montar(dadosD23Instabilidade());
+  for (const [idioma, noAr, instabilidade] of [
+    ['pt-BR', 'no ar', 'instabilidade isolada sem incidente'],
+    ['es-PY', 'en línea', 'inestabilidad aislada sin incidente'],
+  ]) {
+    const p = await desenhar(site, idioma);
+    assert.deepEqual(
+      barraDaLinhaNoDia(p, 'satelite', '22 de nov.'),
+      {
+        nome: `22 de nov.: 75,00 % ${noAr}, ${instabilidade}`,
+        dica: `22 de nov.: 75,00 % ${noAr} · ${instabilidade}`,
+        classe: 'barra barra-verde',
+      },
+      idioma,
+    );
+    // Sem degradado e sem fora: só o percentual.
+    assert.equal(barraDaLinhaNoDia(p, 'satelite', '21 de nov.').dica, `21 de nov.: 100,00 % ${noAr}`);
+  }
+});
+
+test('D23: na linha por fato, com fora e degradado isolados, primeiro as falhas e depois a instabilidade, nos dois idiomas', async () => {
+  const site = montar(dadosD23Instabilidade());
+  for (const [idioma, noAr, falhas, instabilidade] of [
+    ['pt-BR', 'no ar', 'falhas isoladas sem incidente', 'instabilidade isolada sem incidente'],
+    ['es-PY', 'en línea', 'fallas aisladas sin incidente', 'inestabilidad aislada sin incidente'],
+  ]) {
+    const p = await desenhar(site, idioma);
+    assert.deepEqual(
+      barraDaLinhaNoDia(p, 'satelite', '23 de nov.'),
+      {
+        nome: `23 de nov.: 80,00 % ${noAr}, ${falhas}, ${instabilidade}`,
+        dica: `23 de nov.: 80,00 % ${noAr} · ${falhas} · ${instabilidade}`,
+        classe: 'barra barra-verde',
+      },
+      idioma,
+    );
+  }
+});
+
+test('D23: onde o degradado conta como no ar, e no dia com incidente, nada de instabilidade isolada', async () => {
+  const p = await desenhar(montar(dadosD23Instabilidade()), 'pt-BR');
+  // No app, o degradado sem incidente fica só no percentual.
+  assert.deepEqual(barraDaLinhaNoDia(p, 'app', '22 de nov.'), {
+    nome: '22 de nov.: 100,00 % no ar',
+    dica: '22 de nov.: 100,00 % no ar',
+    classe: 'barra barra-verde',
+  });
+  // No app, com fora e degradado sem incidente: só «falhas isoladas sem incidente».
+  assert.deepEqual(barraDaLinhaNoDia(p, 'app', '23 de nov.'), {
+    nome: '23 de nov.: 99,00 % no ar, falhas isoladas sem incidente',
+    dica: '23 de nov.: 99,00 % no ar · falhas isoladas sem incidente',
+    classe: 'barra barra-verde',
+  });
+  // No satélite, com o incidente «degradado» que toca o dia: os minutos, como antes.
+  assert.deepEqual(barraDaLinhaNoDia(p, 'satelite', '20 de nov.'), {
+    nome: '20 de nov.: 66,66 % no ar, 0 min fora do ar',
+    dica: '20 de nov.: 66,66 % no ar · 0 min fora do ar',
+    classe: 'barra barra-amarela',
+  });
+});
+
 test('o site com a fonte dados não leva nada de exemplo/', () => {
   const site = montar(dadosReais());
   const doExemplo = readdirSync(EXEMPLO).map((n) => readFileSync(join(EXEMPLO, n), 'utf8'));
