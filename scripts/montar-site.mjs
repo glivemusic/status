@@ -1,5 +1,6 @@
 // Monta o site: node scripts/montar-site.mjs --fonte <exemplo|dir do ramo dados> --saida <dir>
 // Copia site/, os arquivos de lib/ que a página importa e grava a visão reduzida dos três JSON em <saida>/dados/.
+// Só a fonte pedida é lida: com o dir do ramo dados, nada de exemplo/ entra. D17: grava sempre o CNAME.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +11,8 @@ import { visaoDoEstado, visaoDosDias, visaoDosIncidentes } from '../lib/visao.mj
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = join(RAIZ, 'site');
 const LIB = join(RAIZ, 'lib');
+// D17: o domínio da página (docs/dominio.md).
+const DOMINIO = 'status.basefertil.com';
 
 const { values } = parseArgs({ options: { fonte: { type: 'string' }, saida: { type: 'string' } } });
 if (!values.fonte || !values.saida) {
@@ -63,6 +66,7 @@ for (const arquivo of libDaPagina()) copyFileSync(arquivo, join(saida, 'lib', ar
 gravarJson(join(saida, 'dados', 'estado.json'), visaoDoEstado(config, estado));
 gravarJson(join(saida, 'dados', 'dias.json'), visaoDosDias(config, dias, exemplo));
 gravarJson(join(saida, 'dados', 'incidentes.json'), visaoDosIncidentes(incidentes.incidentes, exemplo));
+writeFileSync(join(saida, 'CNAME'), `${DOMINIO}\n`);
 
 // Plano §1.4: nenhum arquivo publicado leva endereço ou nome de fornecedor, venha de onde vier.
 function publicados(dir) {

@@ -1,0 +1,247 @@
+// D17: a página montada com dados reais e com os de exemplo, desenhada num DOM falso (sem navegador), o CNAME e o
+// site com a fonte `dados` sem nada de exemplo/.
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { after, test } from 'node:test';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { termoProibido } from '../lib/vazamento.mjs';
+
+const RAIZ = fileURLToPath(new URL('..', import.meta.url));
+const EXEMPLO = join(RAIZ, 'exemplo');
+const config = JSON.parse(readFileSync(join(RAIZ, 'config', 'alvos.json'), 'utf8'));
+const pastas = [];
+after(() => {
+  for (const p of pastas) rmSync(p, { recursive: true, force: true });
+});
+function temporaria() {
+  const p = mkdtempSync(join(tmpdir(), 'status-pagina-'));
+  pastas.push(p);
+  return p;
+}
+function arquivos(dir) {
+  return readdirSync(dir).flatMap((nome) => {
+    const caminho = join(dir, nome);
+    return statSync(caminho).isDirectory() ? arquivos(caminho) : [caminho];
+  });
+}
+function montar(fonte) {
+  const saida = temporaria();
+  execFileSync(process.execPath, ['scripts/montar-site.mjs', '--fonte', fonte, '--saida', saida], { cwd: RAIZ, encoding: 'utf8' });
+  return saida;
+}
+
+// Dados reais de teste: só o app com dados e nenhum incidente. Para o login e o banco, restos de estado de antes
+// de D17 (o banco também com um dia), que a página não deve mostrar nas linhas em breve nem levar ao geral.
+const AGORA = '2026-11-23T21:05:00Z';
+function dadosReais() {
+  const fonte = temporaria();
+  const linha = (estado) => ({ estado, fora_seguidas: 0, degradadas_seguidas: 0, boas_seguidas: 2, serie_inicio: null, incidente: null });
+  const dia = { feitas: 250, ok: 250, degradado: 0, fora: 0, minutos_fora: 0 };
+  writeFileSync(
+    join(fonte, 'estado.json'),
+    JSON.stringify({
+      verificado_em: '2026-11-23T21:02:00Z',
+      publicado_em: '2026-11-23T21:02:00Z',
+      linhas: { app: linha('ok'), banco: linha('fora'), login: linha('degradado') },
+    }),
+  );
+  writeFileSync(join(fonte, 'dias.json'), JSON.stringify({ app: { '2026-11-22': dia, '2026-11-23': dia }, banco: { '2026-11-22': dia } }));
+  writeFileSync(join(fonte, 'incidentes.json'), JSON.stringify({ incidentes: [] }));
+  return fonte;
+}
+
+// --- Um DOM mínimo, só o que site/pagina.mjs usa ---
+class Elemento {
+  constructor(tag) {
+    this.tagName = tag.toUpperCase();
+    this.filhos = [];
+    this.texto = '';
+    this.atributos = {};
+    this.dataset = {};
+    this.hidden = false;
+    this.className = '';
+    this.ouvintes = {};
+  }
+  get classList() {
+    const el = this;
+    const lista = () => el.className.split(/\s+/).filter(Boolean);
+    return {
+      add: (c) => (el.className = [...new Set([...lista(), c])].join(' ')),
+      contains: (c) => lista().includes(c),
+      toggle: (c, ligar) => {
+        const tem = lista().includes(c);
+        const quer = ligar ?? !tem;
+        el.className = (quer ? [...new Set([...lista(), c])] : lista().filter((x) => x !== c)).join(' ');
+        return quer;
+      },
+    };
+  }
+  set textContent(v) {
+    this.filhos = [];
+    this.texto = String(v);
+  }
+  get textContent() {
+    return this.texto + this.filhos.map((f) => f.textContent).join('');
+  }
+  append(...nos) {
+    this.filhos.push(...nos);
+  }
+  replaceChildren(...nos) {
+    this.texto = '';
+    this.filhos = [...nos];
+  }
+  get lastChild() {
+    return this.filhos.at(-1);
+  }
+  setAttribute(k, v) {
+    this.atributos[k] = String(v);
+  }
+  getAttribute(k) {
+    return this.atributos[k] ?? null;
+  }
+  addEventListener(tipo, f) {
+    (this.ouvintes[tipo] ??= []).push(f);
+  }
+  // Os descendentes com a classe.
+  todos(classe) {
+    return this.filhos.flatMap((f) => [...(f.classList.contains(classe) ? [f] : []), ...f.todos(classe)]);
+  }
+}
+
+// Desenha a página montada em `dir`, no idioma, com o relógio em `agora`. -> o document falso.
+let rodada = 0;
+async function desenhar(dir, idioma, agora = AGORA) {
+  const ids = new Map();
+  const document = {
+    documentElement: new Elemento('html'),
+    title: '',
+    activeElement: null,
+    createElement: (tag) => new Elemento(tag),
+    getElementById: (id) => {
+      if (!ids.has(id)) ids.set(id, new Elemento('div'));
+      return ids.get(id);
+    },
+  };
+  const antes = { document: globalThis.document, location: globalThis.location, history: globalThis.history, fetch: globalThis.fetch, now: Date.now };
+  Object.assign(globalThis, {
+    document,
+    location: { search: `?lang=${idioma}`, href: `http://127.0.0.1/status/?lang=${idioma}` },
+    history: { replaceState: () => {} },
+    fetch: async (caminho) => {
+      const texto = readFileSync(join(dir, caminho), 'utf8');
+      return { ok: true, status: 200, json: async () => JSON.parse(texto) };
+    },
+  });
+  Date.now = () => Date.parse(agora);
+  try {
+    rodada += 1;
+    await import(`${pathToFileURL(join(dir, 'pagina.mjs')).href}?rodada=${rodada}`);
+  } finally {
+    Object.assign(globalThis, { document: antes.document, location: antes.location, history: antes.history, fetch: antes.fetch });
+    Date.now = antes.now;
+  }
+  return { $: (id) => ids.get(id), lang: document.documentElement.lang };
+}
+
+function linhasDesenhadas(pagina) {
+  return pagina.$('linhas').filhos.map((li) => ({
+    nome: li.todos('linha-nome')[0]?.textContent,
+    estado: li.todos('linha-estado')[0]?.textContent,
+    classe: li.todos('linha-estado')[0]?.className,
+    barras: li.todos('barra').length,
+    rodape: li.todos('linha-rodape').length,
+    pct: li.todos('linha-pct').length,
+    verificado: li.todos('linha-verificado').length,
+  }));
+}
+
+test('com dados reais: sem a faixa de exemplo; as linhas em breve com o nome e «Em breve», sem barras nem percentual', async () => {
+  const site = montar(dadosReais());
+  for (const [idioma, rotulo, geral] of [
+    ['pt-BR', 'Em breve', 'Todos os sistemas operacionais'],
+    ['es-PY', 'Próximamente', 'Todos los sistemas operativos'],
+  ]) {
+    const p = await desenhar(site, idioma);
+    assert.equal(p.lang, idioma);
+    assert.equal(p.$('aviso').hidden, true, 'sem a faixa de exemplo');
+    assert.equal(p.$('aviso').textContent, '');
+    // O banco e o login tinham «fora» e «degradado» antigos: não entram no geral.
+    assert.equal(p.$('geral').textContent, geral);
+    assert.equal(p.$('geral').className, 'geral geral-ok');
+    const linhas = linhasDesenhadas(p);
+    assert.deepEqual(linhas.map((l) => l.nome), config.linhas.map((l) => l.nome[idioma]));
+    const [app, ...emBreve] = linhas;
+    assert.equal(app.barras, 90);
+    assert.equal(app.rodape, 1);
+    assert.equal(app.pct, 1);
+    for (const l of emBreve) {
+      assert.equal(l.estado, rotulo, l.nome);
+      assert.equal(l.classe, 'linha-estado estado-em_breve');
+      assert.equal(l.barras, 0, `${l.nome}: sem barras`);
+      assert.equal(l.rodape, 0, `${l.nome}: sem «Há 90 dias · % · Hoje»`);
+      assert.equal(l.pct, 0);
+      assert.equal(l.verificado, 0, `${l.nome}: sem «Verificado há»`);
+    }
+  }
+});
+
+test('com os dados de exemplo: a página fica como antes de D17 (faixa, as 4 linhas com barras, o geral com o banco)', async () => {
+  const site = montar('exemplo');
+  const p = await desenhar(site, 'pt-BR', '2026-12-01T00:00:00Z');
+  assert.equal(p.$('aviso').hidden, false);
+  assert.equal(p.$('aviso').textContent, 'Dados de exemplo: a página ainda não está ligada à checagem real.');
+  assert.equal(p.$('geral').className, 'geral geral-degradado', 'o banco degradado do exemplo entra no geral');
+  const linhas = linhasDesenhadas(p);
+  assert.deepEqual(linhas.map((l) => l.estado), ['Operacional', 'Operacional', 'Instável', 'Operacional']);
+  for (const l of linhas) {
+    assert.equal(l.barras, 90, l.nome);
+    assert.equal(l.rodape, 1, l.nome);
+  }
+  assert.equal(linhas[3].verificado, 1, 'o «Verificado há» do satélite');
+  assert.ok(!linhas.some((l) => l.classe.includes('em_breve')));
+});
+
+test('o site com a fonte dados não leva nada de exemplo/', () => {
+  const site = montar(dadosReais());
+  const doExemplo = readdirSync(EXEMPLO).map((n) => readFileSync(join(EXEMPLO, n), 'utf8'));
+  const { incidentes } = JSON.parse(readFileSync(join(EXEMPLO, 'incidentes.json'), 'utf8'));
+  // Os textos dos manuais são só do exemplo (os automáticos vêm do catálogo, que a página leva).
+  const textosDoExemplo = incidentes
+    .filter((i) => i.origem === 'manual')
+    .flatMap((i) => [i.titulo['pt-BR'], i.titulo['es-PY'], ...i.atualizacoes.flatMap((a) => [a.texto['pt-BR'], a.texto['es-PY']])]);
+  assert.ok(textosDoExemplo.length > 0);
+  for (const arquivo of arquivos(site)) {
+    const texto = readFileSync(arquivo, 'utf8');
+    assert.ok(!doExemplo.includes(texto), `${arquivo} é cópia de exemplo/`);
+    for (const t of textosDoExemplo) assert.ok(!texto.includes(t), `${arquivo} tem «${t}» do exemplo`);
+  }
+  for (const nome of ['estado.json', 'dias.json', 'incidentes.json']) {
+    const json = JSON.parse(readFileSync(join(site, 'dados', nome), 'utf8'));
+    assert.equal(json.exemplo, undefined, `${nome} sem a marca de exemplo`);
+    assert.equal(json.agora, undefined, `${nome} sem o «agora» do exemplo`);
+  }
+  // Os dias das linhas em breve (o banco tinha um) não vão.
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(join(site, 'dados', 'dias.json'), 'utf8'))), ['app']);
+});
+
+test('o CNAME vai com as duas fontes, uma linha só, e nada publicado tem o endereço checado', () => {
+  for (const fonte of ['exemplo', dadosReais()]) {
+    const site = montar(fonte);
+    assert.equal(readFileSync(join(site, 'CNAME'), 'utf8'), 'status.basefertil.com\n');
+    const urls = config.linhas.map((l) => l.url).filter(Boolean);
+    assert.deepEqual(urls, ['https://basefertil.com/']);
+    for (const arquivo of arquivos(site)) {
+      const texto = readFileSync(arquivo, 'utf8');
+      assert.equal(termoProibido(texto, urls), null, arquivo);
+      assert.ok(!texto.includes('basefertil.com/'), `${arquivo} contém o endereço checado`);
+    }
+  }
+});
+
+test('o rótulo «Em breve» usa a cor neutra de apoio, que o teste de contraste confere nos dois temas', () => {
+  const css = readFileSync(join(RAIZ, 'site', 'estilo.css'), 'utf8');
+  assert.match(css, /\.estado-em_breve \{\n  color: var\(--apoio\);\n\}/);
+});

@@ -168,11 +168,11 @@ const AGORA_DO_INCIDENTE = '2026-11-23T21:04:00.000Z';
 const ID_DO_MANUAL = '20261123-2104-manual';
 const ENTRADA = {
   ACAO: 'abrir',
-  LINHAS: 'login',
+  LINHAS: 'app',
   TIPO: 'fora',
   ESTADO: 'investigando',
-  TITULO_PT: 'Falha no login',
-  TITULO_ES: 'Falla en el inicio de sesión',
+  TITULO_PT: 'Falha no aplicativo',
+  TITULO_ES: 'Falla en la aplicación',
   TEXTO_PT: 'Estamos investigando.',
   TEXTO_ES: 'Estamos investigando.',
 };
@@ -222,9 +222,9 @@ function cliDaChecagem(raiz, remoto, nome, extra = {}) {
   );
 }
 
-function cliDoIncidente(raiz, remoto, nome, entrada = ENTRADA) {
+function cliDoIncidente(raiz, remoto, nome, entrada = ENTRADA, agora = AGORA_DO_INCIDENTE) {
   return rodarNode(
-    ['scripts/incidente.mjs', '--arvore', join(raiz, nome), '--remoto', remoto, '--agora', AGORA_DO_INCIDENTE, '--espera-min', '0', '--espera-max', '50'],
+    ['scripts/incidente.mjs', '--arvore', join(raiz, nome), '--remoto', remoto, '--agora', agora, '--espera-min', '0', '--espera-max', '50'],
     ambiente(raiz, entrada),
   );
 }
@@ -256,6 +256,35 @@ test('(a) uma checagem e um incidente ao mesmo tempo, em dois processos: o dados
     temOsDoisEfeitos(raiz, remoto);
     assert.equal(commits(raiz, remoto), 2);
     assert.equal(readFileSync(saidaDoJob, 'utf8'), 'publicar=true\n', 'o output vem do gravar-dados');
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+  }
+});
+
+test('D18: três incidentes manuais e uma checagem ao mesmo tempo, em quatro processos: o dados tem os quatro efeitos', async () => {
+  const raiz = pasta();
+  try {
+    const remoto = novoRemoto(raiz);
+    // O ramo já existe (de hoje): as recusas são as de avanço rápido, sem recriação.
+    await gravar(raiz, remoto, 'semente', { agora: '2026-11-23T20:00:00.000Z', operacao: () => ({ arquivos: {}, mensagem: 'semente' }) });
+    // Um minuto diferente para cada manual (o id é AAAAMMDD-HHMM-manual).
+    const horas = ['2026-11-23T21:04:00.000Z', '2026-11-23T21:05:00.000Z', '2026-11-23T21:06:00.000Z'];
+    const ids = ['20261123-2104-manual', '20261123-2105-manual', '20261123-2106-manual'];
+    const todos = await Promise.all([
+      cliDaChecagem(raiz, remoto, 'arvore-checagem'),
+      ...horas.map((agora, n) => cliDoIncidente(raiz, remoto, `arvore-incidente-${n}`, ENTRADA, agora)),
+    ]);
+    // Com 4 tentativas e 4 gravadores, cada um é recusado no máximo 3 vezes (uma por gravação dos outros).
+    for (const r of todos) assert.equal(r.status, 0, r.stderr);
+    for (const [n, r] of todos.slice(1).entries()) assert.match(r.stdout, new RegExp(`Incidente aberto: ${ids[n]}`));
+    const estado = noRamo(raiz, remoto, 'estado.json');
+    const dias = noRamo(raiz, remoto, 'dias.json');
+    const { incidentes } = noRamo(raiz, remoto, 'incidentes.json');
+    assert.equal(estado.verificado_em, MEDIDA.instante, 'a checagem gravou');
+    assert.equal(estado.linhas.app.fora_seguidas, 1);
+    assert.equal(dias.app['2026-11-23'].fora, 1);
+    assert.deepEqual(incidentes.map((i) => i.id).sort(), ids, 'os três incidentes gravaram');
+    assert.equal(commits(raiz, remoto), 5, 'a semente e as quatro gravações');
   } finally {
     rmSync(raiz, { recursive: true, force: true });
   }
@@ -557,10 +586,15 @@ test('(e) a CLI não imprime o token nem o cabeçalho', async () => {
   }
 });
 
-test('os workflows: grupos separados sem cancelar, token só por env, entrada fora do run, sem outro push', () => {
-  for (const [nome, grupo] of [['checagem', 'checagem'], ['incidente', 'incidente']]) {
+test('os workflows: a checagem no seu grupo sem cancelar, o incidente sem grupo (D18), token só por env, entrada fora do run, sem outro push', () => {
+  for (const nome of ['checagem', 'incidente']) {
     const yml = readFileSync(join(RAIZ, '.github', 'workflows', `${nome}.yml`), 'utf8');
-    assert.match(yml, new RegExp(`concurrency:\\n  group: ${grupo}\\n  cancel-in-progress: false\\n`), nome);
+    if (nome === 'checagem') {
+      assert.match(yml, /^concurrency:\n  group: checagem\n  cancel-in-progress: false\n/m, nome);
+    } else {
+      // D18: um terceiro incidente pendente cancelaria o do meio; o laço de gravação (D13) já protege o dado.
+      assert.ok(!/^\s*concurrency:/m.test(yml), 'o incidente não tem grupo de concurrency');
+    }
     assert.match(yml, /GH_TOKEN: \$\{\{ github\.token \}\}/);
     assert.ok(!/secrets\./.test(yml), `${nome}: sem secrets`);
     assert.ok(!/\bgit (push|commit|fetch|worktree)\b/.test(yml), `${nome}: o git fica no script`);

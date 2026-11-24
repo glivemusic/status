@@ -164,7 +164,7 @@ test('linha pendente só aparece com dados de exemplo', () => {
   assert.ok(!linhasVisiveis(comPendente, false).some((l) => l.id === 'futura'));
 });
 
-test('com dados reais, não há marca de exemplo; o satélite sem fato vai sem verificado_em', () => {
+test('com dados reais, não há marca de exemplo; as linhas em breve (D17) vão só com o nome e a marca', () => {
   const fonte = temporaria();
   const saida = temporaria();
   writeFileSync(
@@ -180,13 +180,10 @@ test('com dados reais, não há marca de exemplo; o satélite sem fato vai sem v
   node('scripts/montar-site.mjs', '--fonte', fonte, '--saida', saida);
   const estado = JSON.parse(readFileSync(join(saida, 'dados', 'estado.json'), 'utf8'));
   assert.deepEqual(Object.keys(estado), ['verificado_em', 'linhas']);
-  assert.deepEqual(estado.linhas.map((l) => [l.id, l.estado]), [
-    ['app', 'ok'],
-    ['login', 'sem_dado'],
-    ['banco', 'sem_dado'],
-    ['satelite', 'sem_dado'],
-  ]);
-  assert.equal(estado.linhas[3].verificado_em, null);
+  assert.deepEqual(estado.linhas[0], { id: 'app', nome: config.linhas[0].nome, estado: 'ok' });
+  for (const [n, id] of [[1, 'login'], [2, 'banco'], [3, 'satelite']]) {
+    assert.deepEqual(estado.linhas[n], { id, nome: config.linhas[n].nome, em_breve: true });
+  }
   const incidentes = JSON.parse(readFileSync(join(saida, 'dados', 'incidentes.json'), 'utf8'));
   assert.deepEqual(incidentes, { incidentes: [] });
 });
@@ -233,7 +230,7 @@ test('o catálogo tem as mesmas chaves nos dois idiomas, sem texto vazio, com os
     'barra.dica', 'incidentes.titulo', 'incidentes.nenhum', 'incidente.investigando', 'incidente.identificado',
     'incidente.monitorando', 'incidente.resolvido', 'incidente.automatico', 'incidente.duracao',
     'rodape.atualizado', 'rodape.contato', 'incidente.auto_titulo_fora', 'incidente.auto_titulo_degradado',
-    'incidente.auto_resolvido', 'exemplo.aviso',
+    'incidente.auto_resolvido', 'exemplo.aviso', 'linha.em_breve',
   ];
   for (const chave of doPlano) assert.ok(Object.hasOwn(pt, chave), `falta ${chave}`);
   // D11, ao pé da letra.
@@ -249,6 +246,9 @@ test('o catálogo tem as mesmas chaves nos dois idiomas, sem texto vazio, com os
     es['incidente.satelite.texto'],
     'El proveedor de las imágenes Sentinel-2 no está respondiendo. Las imágenes nuevas pueden demorar; el resto de la aplicación funciona con normalidad.',
   );
+  // D17.
+  assert.equal(pt['linha.em_breve'], 'Em breve');
+  assert.equal(es['linha.em_breve'], 'Próximamente');
   assert.equal(pt['geral.ok'], 'Todos os sistemas operacionais');
   assert.equal(es['barra.dica'], '{dia}: {pct} en línea · {minutos} min fuera de línea');
 });

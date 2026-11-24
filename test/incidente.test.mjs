@@ -35,21 +35,22 @@ function pasta(incidentes = [AUTOMATICO, RESOLVIDO]) {
   return p;
 }
 
-function rodar(dir, entrada, agora = '2026-11-23T21:04:00Z') {
+function rodar(dir, entrada, agora = '2026-11-23T21:04:00Z', config = null) {
   const env = { PATH: process.env.PATH };
   for (const [k, v] of Object.entries(entrada)) env[k] = v;
-  return spawnSync(process.execPath, [SCRIPT, '--dados', dir, '--agora', agora], { cwd: RAIZ, env, encoding: 'utf8' });
+  const args = [SCRIPT, '--dados', dir, '--agora', agora, ...(config ? ['--config', config] : [])];
+  return spawnSync(process.execPath, args, { cwd: RAIZ, env, encoding: 'utf8' });
 }
 
 const ler = (dir) => JSON.parse(readFileSync(join(dir, 'incidentes.json'), 'utf8')).incidentes;
 
 const ABRIR = {
   ACAO: 'abrir',
-  LINHAS: 'login, banco',
+  LINHAS: 'app',
   TIPO: 'fora',
   ESTADO: 'investigando',
-  TITULO_PT: 'Falha no login',
-  TITULO_ES: 'Falla en el inicio de sesión',
+  TITULO_PT: 'Falha no aplicativo',
+  TITULO_ES: 'Falla en la aplicación',
   TEXTO_PT: 'Estamos investigando.',
   TEXTO_ES: 'Estamos investigando.',
 };
@@ -60,11 +61,11 @@ test('abrir grava o manual com id AAAAMMDD-HHMM-manual', () => {
   assert.equal(r.status, 0, r.stderr);
   const novo = ler(dir).find((i) => i.origem === 'manual');
   assert.equal(novo.id, '20261123-2104-manual');
-  assert.deepEqual(novo.linhas, ['login', 'banco']);
+  assert.deepEqual(novo.linhas, ['app']);
   assert.equal(novo.tipo, 'fora');
   assert.equal(novo.inicio, '2026-11-23T21:04:00.000Z');
   assert.equal(novo.fim, null);
-  assert.deepEqual(novo.titulo, { 'pt-BR': 'Falha no login', 'es-PY': 'Falla en el inicio de sesión' });
+  assert.deepEqual(novo.titulo, { 'pt-BR': 'Falha no aplicativo', 'es-PY': 'Falla en la aplicación' });
   assert.deepEqual(novo.atualizacoes, [
     { em: '2026-11-23T21:04:00.000Z', estado: 'investigando', texto: { 'pt-BR': 'Estamos investigando.', 'es-PY': 'Estamos investigando.' } },
   ]);
@@ -217,27 +218,66 @@ test('recusa endereço e nome de fornecedor em título e texto (§1.4), sem dife
 });
 
 const config = JSON.parse(readFileSync(join(RAIZ, 'config', 'alvos.json'), 'utf8'));
-function aplicar(troca) {
+// D17: hoje login, banco e satélite estão em breve. As regras de D11 valem para quando voltarem: o config real sem
+// `em_breve` (e um arquivo dele, para a CLI).
+const configDaRota = { linhas: config.linhas.map(({ em_breve: _emBreve, ...l }) => l) };
+function arquivoDaRota() {
+  const p = mkdtempSync(join(tmpdir(), 'status-incidente-config-'));
+  pastas.push(p);
+  const arquivo = join(p, 'alvos.json');
+  writeFileSync(arquivo, JSON.stringify(configDaRota));
+  return arquivo;
+}
+function aplicar(troca, cfg = config) {
   const entrada = {};
   for (const [k, v] of Object.entries({ ...ABRIR, ...troca })) entrada[k.toLowerCase()] = v;
-  return aplicarAcaoManual({ incidentes: [], entrada, config, instante: '2026-11-23T21:04:00.000Z' });
+  return aplicarAcaoManual({ incidentes: [], entrada, config: cfg, instante: '2026-11-23T21:04:00.000Z' });
 }
 
-test('linha pendente não aceita incidente; o satélite (D11) aceita', () => {
+test('D17: abrir numa linha em breve é recusado com mensagem clara, sem gravar nada; app aceita', () => {
+  for (const linhas of ['login', 'banco', 'satelite', 'app, banco']) {
+    const id = linhas.split(',').map((s) => s.trim()).find((s) => s !== 'app');
+    assert.throws(
+      () => aplicar({ LINHAS: linhas, TIPO: 'degradado' }),
+      new RegExp(`^Error: A linha ${id} está «em breve»: ainda não é checada e não recebe incidente\\. Hoje só aceita: app\\.$`),
+    );
+    const dir = pasta();
+    const antes = readFileSync(join(dir, 'incidentes.json'), 'utf8');
+    const r = rodar(dir, { ...ABRIR, LINHAS: linhas, TIPO: 'degradado' });
+    assert.equal(r.status, 1, linhas);
+    assert.match(r.stderr, new RegExp(`^Erro: A linha ${id} está «em breve».+ Nada foi gravado\\.$`, 'm'));
+    assert.equal(readFileSync(join(dir, 'incidentes.json'), 'utf8'), antes, 'o arquivo fica igual');
+  }
+  // Sem incidentes.json, a recusa também não cria o arquivo.
+  const vazia = mkdtempSync(join(tmpdir(), 'status-incidente-'));
+  pastas.push(vazia);
+  assert.equal(rodar(vazia, { ...ABRIR, LINHAS: 'login' }).status, 1);
+  assert.equal(existsSync(join(vazia, 'incidentes.json')), false);
+  assert.deepEqual(aplicar({ LINHAS: 'app' })[0].linhas, ['app']);
+});
+
+test('D17: atualizar e resolver um automático antigo de linha em breve continuam aceitos', () => {
+  const dir = pasta();
+  const r = rodar(dir, { ACAO: 'resolver', ID: AUTOMATICO.id, TEXTO_PT: 'Resolvido.', TEXTO_ES: 'Resuelto.' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(ler(dir).find((i) => i.id === AUTOMATICO.id).fim);
+});
+
+test('linha pendente não aceita incidente; o satélite (D11) aceita quando não está em breve', () => {
   const comPendente = { linhas: [...config.linhas, { id: 'futura', nome: { 'pt-BR': 'x', 'es-PY': 'y' }, pendente: true }] };
   const entrada = {};
   for (const [k, v] of Object.entries({ ...ABRIR, LINHAS: 'futura' })) entrada[k.toLowerCase()] = v;
   assert.throws(
     () => aplicarAcaoManual({ incidentes: [], entrada, config: comPendente, instante: '2026-11-23T21:04:00.000Z' }),
-    /Linha desconhecida: "futura"/,
+    /^Error: O campo linhas tem uma linha desconhecida\. Use app\.$/,
   );
-  assert.deepEqual(aplicar({ LINHAS: 'satelite', TIPO: 'degradado' })[0].linhas, ['satelite']);
+  assert.deepEqual(aplicar({ LINHAS: 'satelite', TIPO: 'degradado' }, configDaRota)[0].linhas, ['satelite']);
 });
 
 test('D11: abrir «fora» numa linha por fato é recusado, sem gravar nada; «degradado» passa', () => {
-  // Pela lógica, com o config real e com outra linha por fato (a regra vem de `intervalo_s`, não do id).
-  assert.throws(() => aplicar({ LINHAS: 'satelite' }), /A linha satelite não fica fora do ar/);
-  assert.throws(() => aplicar({ LINHAS: 'app, satelite' }), /A linha satelite não fica fora do ar/);
+  // Pela lógica, com o config da rota e com outra linha por fato (a regra vem de `intervalo_s`, não do id).
+  assert.throws(() => aplicar({ LINHAS: 'satelite' }, configDaRota), /A linha satelite não fica fora do ar/);
+  assert.throws(() => aplicar({ LINHAS: 'app, satelite' }, configDaRota), /A linha satelite não fica fora do ar/);
   const outroFato = { linhas: [...config.linhas, { id: 'outra', nome: { 'pt-BR': 'x', 'es-PY': 'y' }, alvo: 'app', componente: 'outra', intervalo_s: 3600 }] };
   const entrada = {};
   for (const [k, v] of Object.entries({ ...ABRIR, LINHAS: 'outra' })) entrada[k.toLowerCase()] = v;
@@ -245,11 +285,11 @@ test('D11: abrir «fora» numa linha por fato é recusado, sem gravar nada; «de
     () => aplicarAcaoManual({ incidentes: [], entrada, config: outroFato, instante: '2026-11-23T21:04:00.000Z' }),
     /A linha outra não fica fora do ar/,
   );
-  assert.equal(aplicar({ LINHAS: 'app, satelite', TIPO: 'degradado' })[0].tipo, 'degradado');
+  assert.equal(aplicar({ LINHAS: 'app, satelite', TIPO: 'degradado' }, configDaRota)[0].tipo, 'degradado');
   // Pela CLI: falha com mensagem clara e o arquivo fica igual.
   const dir = pasta();
   const antes = readFileSync(join(dir, 'incidentes.json'), 'utf8');
-  const r = rodar(dir, { ...ABRIR, LINHAS: 'satelite' });
+  const r = rodar(dir, { ...ABRIR, LINHAS: 'satelite' }, undefined, arquivoDaRota());
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /^Erro: A linha satelite não fica fora do ar: use o tipo degradado/);
   assert.match(r.stderr, /Nada foi gravado\./);
@@ -307,5 +347,9 @@ test('pela CLI: caractere invisível é recusado, e a mensagem não ecoa o texto
   const r2 = rodar(dir, { ...ABRIR, LINHAS: 'app, x\nErro: falso' });
   assert.notEqual(r2.status, 0);
   assert.equal(r2.stderr.trim().split('\n').length, 1, 'a mensagem fica numa linha só');
-  assert.match(r2.stderr, /"x\\nErro: falso"/);
+  // A linha desconhecida não é ecoada: só os ids válidos do config.
+  assert.equal(r2.stderr, 'Erro: O campo linhas tem uma linha desconhecida. Use app. Nada foi gravado.\n');
+  const r3 = rodar(dir, { ...ABRIR, LINHAS: 'app, agrodash-secreto' });
+  assert.equal(r3.status, 1);
+  assert.ok(!r3.stderr.includes('agrodash-secreto'), 'sem eco do texto livre');
 });

@@ -1,4 +1,4 @@
-// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11 e as chaves da sessão principal).
+// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11, D17 e as chaves da sessão principal).
 // Sem import: os scripts também leem este arquivo.
 
 export const TEXTOS = {
@@ -16,6 +16,7 @@ export const TEXTOS = {
     'linha.degradado': 'Instável',
     'linha.fora': 'Fora do ar',
     'linha.sem_dado': 'Sem dados',
+    'linha.em_breve': 'Em breve',
     'barras.legenda': 'Últimos 90 dias',
     'barras.disponibilidade': '{pct} de disponibilidade',
     'barras.hoje': 'Hoje',
@@ -60,6 +61,7 @@ export const TEXTOS = {
     'linha.degradado': 'Inestable',
     'linha.fora': 'Fuera de línea',
     'linha.sem_dado': 'Sin datos',
+    'linha.em_breve': 'Próximamente',
     'barras.legenda': 'Últimos 90 días',
     'barras.disponibilidade': '{pct} de disponibilidad',
     'barras.hoje': 'Hoy',

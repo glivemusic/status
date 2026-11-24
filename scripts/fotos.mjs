@@ -1,6 +1,6 @@
-// D12: as fotos da página com os dados de exemplo.
-//   node scripts/fotos.mjs --saida <pasta> [--tema claro|escuro]
-//   node scripts/fotos.mjs --interagir [--tema claro|escuro]
+// D12: as fotos da página com os dados de exemplo (ou, com --fonte <pasta>, com outros dados).
+//   node scripts/fotos.mjs --saida <pasta> [--tema claro|escuro] [--fonte exemplo|<pasta>]
+//   node scripts/fotos.mjs --interagir [--tema claro|escuro] [--fonte exemplo|<pasta>]
 // Monta o site numa pasta temporária, serve em 127.0.0.1 (porta livre, sob /status/) com node:http, abre o
 // Chrome sem janela com perfil temporário e fala com ele pelo protocolo de depuração (WebSocket do Node 22).
 // Fotografa a página inteira em pt-BR e es-PY a 360 e 1440 px e imprime a largura de rolagem e o `lang`.
@@ -42,13 +42,16 @@ const { values } = parseArgs({
     saida: { type: 'string' },
     tema: { type: 'string', default: 'claro' },
     interagir: { type: 'boolean', default: false },
+    fonte: { type: 'string', default: 'exemplo' },
   },
 });
-if (!['claro', 'escuro'].includes(values.tema) || (!values.interagir && !values.saida)) {
-  console.error('Uso: node scripts/fotos.mjs --saida <pasta> [--tema claro|escuro]');
-  console.error('     node scripts/fotos.mjs --interagir [--tema claro|escuro]');
+if (!['claro', 'escuro'].includes(values.tema) || (!values.interagir && !values.saida) || !values.fonte) {
+  console.error('Uso: node scripts/fotos.mjs --saida <pasta> [--tema claro|escuro] [--fonte exemplo|<pasta de dados>]');
+  console.error('     node scripts/fotos.mjs --interagir [--tema claro|escuro] [--fonte exemplo|<pasta de dados>]');
   process.exit(2);
 }
+// A fonte vai ao montar-site como está: `exemplo` ou uma pasta com estado.json, dias.json e incidentes.json.
+const FONTE = values.fonte === 'exemplo' ? 'exemplo' : resolve(values.fonte);
 if (!existsSync(CHROME)) {
   console.error(`Erro: o Chrome não está em ${CHROME}.`);
   process.exit(1);
@@ -105,10 +108,10 @@ function temporaria(prefixo) {
   return pasta;
 }
 
-// O site com os dados de exemplo, em <tmp>/status.
+// O site com os dados da fonte (padrão: os de exemplo), em <tmp>/status.
 function montarSite() {
   const raiz = join(temporaria('status-fotos-site-'), 'status');
-  execFileSync(process.execPath, [join(RAIZ, 'scripts', 'montar-site.mjs'), '--fonte', 'exemplo', '--saida', raiz], {
+  execFileSync(process.execPath, [join(RAIZ, 'scripts', 'montar-site.mjs'), '--fonte', FONTE, '--saida', raiz], {
     stdio: ['ignore', 'ignore', 'inherit'],
   });
   return raiz;

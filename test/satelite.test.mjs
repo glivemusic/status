@@ -9,17 +9,26 @@ import { estadoGeral } from '../lib/geral.mjs';
 import { minutosDesde } from '../lib/tempo.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
-const config = JSON.parse(readFileSync(new URL('../config/alvos.json', import.meta.url), 'utf8'));
+const real = JSON.parse(readFileSync(new URL('../config/alvos.json', import.meta.url), 'utf8'));
+// D17: hoje o satélite está em breve e o app checa a página. As regras de D11 valem para quando a rota de saúde
+// chegar: os testes usam o config real com o app no modo saúde e sem `em_breve`.
+const config = {
+  linhas: real.linhas.map(({ em_breve: _emBreve, modo: _modo, ...l }) =>
+    l.url ? { ...l, url: 'https://exemplo.invalid/api/health' } : l,
+  ),
+};
 const satelite = config.linhas.find((l) => l.id === 'satelite');
 const app = config.linhas.find((l) => l.id === 'app');
 const dependentes = config.linhas.filter((l) => l.alvo === 'app');
 
-test('o config: o satélite vem do corpo do app, um fato a cada 2 h', () => {
-  assert.equal(satelite.pendente, undefined);
-  assert.equal(satelite.alvo, 'app');
-  assert.equal(satelite.componente, 'satelite');
-  assert.equal(satelite.intervalo_s, 7200);
-  assert.equal(satelite.url, undefined);
+test('o config: o satélite vem do corpo do app, um fato a cada 2 h; hoje, em breve (D17)', () => {
+  const linha = real.linhas.find((l) => l.id === 'satelite');
+  assert.equal(linha.pendente, undefined);
+  assert.equal(linha.em_breve, true);
+  assert.equal(linha.alvo, 'app');
+  assert.equal(linha.componente, 'satelite');
+  assert.equal(linha.intervalo_s, 7200);
+  assert.equal(linha.url, undefined);
 });
 
 // Um corpo do app. `sat`: o valor de componentes.satelite (undefined: ausente); `fato`: o objeto satelite.
@@ -76,7 +85,8 @@ test('classificar: sem corpo válido o satélite é sem dado, nunca fora', () =>
 });
 
 // A execução inteira: cada passo é uma checagem de 5 em 5 min com o que o app devolve.
-const INICIO = Date.parse('2026-11-23T12:02:00Z');
+// A primeira checagem é depois de todos os fatos de F (D18: fato mais de 10 min no futuro não conta).
+const INICIO = Date.parse('2026-11-23T18:02:00Z');
 const PASSO = 5 * 60_000;
 const hora = (n) => new Date(INICIO + n * PASSO).toISOString();
 // Os fatos: o app pergunta ao provedor nas horas pares.
@@ -176,6 +186,39 @@ test('D15: depois de um sem_dado passageiro, a leitura do mesmo fato (ou de um m
     assert.equal(saidas[3].repetidas.includes('satelite'), true);
     assert.equal(geral(estado), 'degradado');
   }
+});
+
+test('D18: verificado_em 10 min à frente da checagem conta; 11 min não conta nem substitui o maior', async () => {
+  const checagem = Date.parse('2026-11-23T20:00:00Z');
+  const aFrente = (min) => new Date(checagem + min * 60_000).toISOString();
+
+  const dez = await rodar([['ok', aFrente(10)]], {}, checagem);
+  assert.equal(dez.estado.linhas.satelite.verificado_em, aFrente(10));
+  assert.equal(dez.estado.linhas.satelite.estado, 'ok');
+  assert.equal(dez.dias.satelite['2026-11-23'].feitas, 1);
+  assert.deepEqual(dez.saidas[0].repetidas, []);
+
+  const onze = await rodar([['ok', aFrente(11)]], {}, checagem);
+  assert.equal(onze.estado.linhas.satelite.verificado_em, null, 'sem fato contado');
+  assert.equal(onze.estado.linhas.satelite.estado, 'sem_dado');
+  assert.equal(onze.dias.satelite, undefined, 'nada no dia');
+  assert.deepEqual(onze.saidas[0].repetidas, ['satelite']);
+
+  // Depois de um fato contado (F.d, ok), um degradado 11 min à frente não conta, não abre e não vira o maior;
+  // o mesmo fato, quando a hora chega, conta.
+  const futuro = '2026-11-23T20:21:00.000Z';
+  const r = await rodar([['ok', F.d], ['degradado', futuro], ['degradado', futuro]], {}, checagem);
+  const linha = r.saidas[1].estado.linhas.satelite;
+  assert.equal(linha.verificado_em, F.d, 'o maior continua o último contado');
+  assert.equal(linha.estado, 'ok', 'a linha volta ao estado do último fato');
+  assert.equal(linha.degradadas_seguidas, 0);
+  assert.deepEqual(r.saidas[1].repetidas, ['satelite']);
+  // A 3ª checagem é às 20:10: o fato das 20:21 está a 11 min, ainda não conta.
+  assert.equal(r.estado.linhas.satelite.verificado_em, F.d);
+  const depois = await rodar([['degradado', futuro]], r, Date.parse('2026-11-23T20:11:00Z'));
+  assert.equal(depois.estado.linhas.satelite.verificado_em, futuro, 'a 10 min, conta');
+  assert.equal(depois.estado.linhas.satelite.degradadas_seguidas, 1);
+  assert.equal(doSatelite(depois.incidentes).length, 0);
 });
 
 test('D15: verificado_em maior conta, mesmo depois de um que voltou', async () => {

@@ -8,7 +8,8 @@ on:
 
 permissions: {}
 
-# D13: grupo próprio; o incidente tem o seu e nenhum espera nem cancela o outro.
+# D13 e D18: grupo próprio, que o incidente não usa; nenhum espera nem cancela o outro. Checagem pendente cancelada
+# aqui não perde nada: a próxima mede de novo.
 concurrency:
   group: checagem
   cancel-in-progress: false

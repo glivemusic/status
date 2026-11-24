@@ -20,7 +20,7 @@ import {
   temIncidenteDegradadoNoDia,
 } from './lib/dias.mjs';
 import { estadoAtual, incidentesRecentes, partesDaDuracao } from './lib/incidentes.mjs';
-import { estadoGeral } from './lib/geral.mjs';
+import { estadoGeral, estadosDoGeral } from './lib/geral.mjs';
 
 const IDIOMAS = ['pt-BR', 'es-PY'];
 const $ = (id) => document.getElementById(id);
@@ -78,7 +78,7 @@ function desenharTopo() {
 }
 
 function desenharGeral(instante) {
-  const estados = dados.estado.linhas.map((l) => l.estado);
+  const estados = estadosDoGeral(dados.estado.linhas);
   const geral = estadoGeral(estados, dados.estado.verificado_em, instante);
   const faixa = $('geral');
   faixa.className = `geral geral-${geral}`;
@@ -161,6 +161,14 @@ function desenharLinhas(instante) {
     const topo = el('div', 'linha-topo');
     const cabeca = el('div', 'linha-cabeca');
     cabeca.append(el('span', 'linha-nome', linha.nome[idioma]));
+    // D17: a linha em breve mostra só o nome e o rótulo: sem barras, sem percentual, sem «Verificado há».
+    if (linha.em_breve === true) {
+      item.classList.add('linha-em_breve');
+      topo.append(cabeca, el('span', 'linha-estado estado-em_breve', t('linha.em_breve')));
+      item.append(topo);
+      lista.append(item);
+      continue;
+    }
     // D11: «Verificado há {minutos} min», do último fato; sem fato, não mostra.
     const minutos = linhaPorFato(linha) ? minutosDesde(linha.verificado_em, instante) : null;
     if (minutos !== null) cabeca.append(el('span', 'linha-verificado', t('satelite.verificado', { minutos })));

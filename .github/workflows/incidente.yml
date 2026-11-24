@@ -14,7 +14,7 @@ on:
         required: false
         default: ''
       linhas:
-        description: 'Linhas, separadas por vírgula (app, login, banco); só ao abrir'
+        description: 'Linhas, separadas por vírgula; só ao abrir. Linhas em breve são recusadas'
         type: string
         required: false
         default: ''
@@ -51,10 +51,8 @@ on:
 
 permissions: {}
 
-# D13: grupo próprio; a checagem tem o seu e nenhum espera nem cancela o outro.
-concurrency:
-  group: incidente
-  cancel-in-progress: false
+# D18: sem grupo de concurrency. O GitHub guarda só um run pendente por grupo e cancelaria um incidente do meio;
+# o laço de gravação (D13) já impede a perda de dado entre gravações ao mesmo tempo.
 
 defaults:
   run:

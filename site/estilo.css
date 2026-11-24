@@ -275,6 +275,15 @@ a:hover {
   color: var(--cinza);
 }
 
+/* D17: a linha em breve não tem estado; o rótulo é neutro, na cor de apoio. */
+.estado-em_breve {
+  color: var(--apoio);
+}
+
+.linha-em_breve .linha-topo {
+  margin-bottom: 0;
+}
+
 .barras {
   display: flex;
   gap: 1px;
