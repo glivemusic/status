@@ -17,7 +17,7 @@ O diff (o arquivo que a sessão principal gravou com `git diff`), a saída do `n
 1. Leia `CLAUDE.md`, `docs/f2-f3.md` e o `docs/plano-pagina-de-status.md` §3 e §4.
 2. **Regras de estado:** 2 falhas seguidas abrem «fora»; 3 degradadas abrem «degradado»; 2 boas fecham; o início é a
    primeira falha da série e o fim a primeira boa da série que fechou; checagem que faltou é «sem dado» e não entra
-   na disponibilidade; «Monitoramento atrasado» depois de 30 min; o dia é o de `America/Asuncion`; a cor da barra
+   na disponibilidade; «Monitoramento atrasado» depois de 60 min (D14); o dia é o de `America/Asuncion`; a cor da barra
    segue o §3.3, cinza com menos de 50 % das checagens.
 3. **Testes:** cada regra acima tem um teste que falharia se a regra quebrasse. A sessão principal roda o `node --test` e te passa
    a saída; você não roda comando.
