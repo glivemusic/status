@@ -344,7 +344,7 @@ test('previstos: 12 por dia; hoje, proporcional', () => {
   assert.equal(esperadasNoDia('2026-11-22', agora), 288);
 });
 
-test('a cor do satélite: amarela com incidente degradado, cinza sem fato no dia, verde no resto; nunca vermelha', () => {
+test('a cor do satélite: amarela com incidente degradado ou sem fato ok, cinza sem fato no dia, verde com fato ok; nunca vermelha', () => {
   const dia = (extra) => ({ feitas: 12, ok: 12, degradado: 0, fora: 0, minutos_fora: 0, ...extra });
   const cor = (registro, temDegradado = false) => corDoDia({ registro, temDegradado, porFato: true });
   assert.equal(cor(dia()), 'verde');
@@ -358,6 +358,10 @@ test('a cor do satélite: amarela com incidente degradado, cinza sem fato no dia
   assert.equal(cor(dia({ minutos_fora: 300 })), 'verde');
   assert.equal(cor(dia({ minutos_fora: 300 }), true), 'amarela');
   assert.equal(cor(dia({ feitas: 0, ok: 0, minutos_fora: 300 })), 'cinza');
+  // D21, a borda: o dia sem nenhum fato `ok` sai amarelo, nunca verde nem vermelho.
+  assert.equal(cor(dia({ ok: 0, degradado: 12 })), 'amarela');
+  assert.equal(cor(dia({ feitas: 1, ok: 0, degradado: 1 })), 'amarela');
+  assert.equal(cor(dia({ ok: 0, fora: 12 })), 'amarela');
   // As outras linhas continuam com a vermelha.
   assert.equal(corDoDia({ registro: dia({ feitas: 288, minutos_fora: 30 }) }), 'vermelha');
 });

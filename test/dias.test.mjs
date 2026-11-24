@@ -61,9 +61,15 @@ test('as quatro cores, com a borda dos 30 min; cinza só sem checagem (D21)', ()
   // D21: a regra dos 50 % saiu; o dia com poucas checagens e sem incidente é verde.
   assert.equal(corDoDia({ registro: dia({ feitas: 143, ok: 143 }) }), 'verde');
   assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 1 }) }), 'verde');
-  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 0, degradado: 1 }) }), 'verde');
-  // Só checagem «fora» sem incidente (D4 não chegou a abrir): verde também (sessão principal, 24/11/2026).
-  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 0, fora: 1 }) }), 'verde');
+  // D21, a borda: com uma `ok`, a falha isolada sem incidente não pinta.
+  assert.equal(corDoDia({ registro: dia({ feitas: 2, ok: 1, fora: 1 }) }), 'verde');
+  // Sem nenhuma `ok`: vermelha com alguma `fora`; amarela só com `degradado`.
+  assert.equal(corDoDia({ registro: dia({ feitas: 2, ok: 0, fora: 2 }) }), 'vermelha');
+  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 0, fora: 1 }) }), 'vermelha');
+  assert.equal(corDoDia({ registro: dia({ feitas: 3, ok: 0, degradado: 3 }) }), 'amarela');
+  assert.equal(corDoDia({ registro: dia({ feitas: 1, ok: 0, degradado: 1 }) }), 'amarela');
+  // Sem `ok`, com `fora` e `degradado` juntos: a `fora` vence.
+  assert.equal(corDoDia({ registro: dia({ feitas: 2, ok: 0, fora: 1, degradado: 1 }) }), 'vermelha');
   // Cinza: o dia sem nenhuma checagem feita.
   assert.equal(corDoDia({ registro: undefined }), 'cinza');
   assert.equal(corDoDia({ registro: dia({ feitas: 0, ok: 0 }) }), 'cinza');
