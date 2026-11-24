@@ -69,9 +69,24 @@ test('classificar o push: só a recusa por gravação no meio vale nova tentativ
     ' ! [rejected]        HEAD -> dados (stale info)',
     '!\tHEAD:refs/heads/dados\t[remote rejected] (failed to update ref)',
     "!\tHEAD:refs/heads/dados\t[remote rejected] (cannot lock ref 'refs/heads/dados': is at 1 but expected 2)",
+    // O começo do ramo em dois gravadores: o outro criou a ref depois do anúncio e antes da atualização.
+    '!\tHEAD:refs/heads/dados\t[remote rejected] (reference already exists)',
+    [
+      'To /tmp/remoto.git',
+      ' ! [remote rejected] HEAD -> refs/heads/dados (reference already exists)',
+      "error: failed to push some refs to '/tmp/remoto.git'",
+    ].join('\n'),
+    '!\tHEAD:refs/heads/dados\t[remote rejected] (incorrect old value provided)',
   ];
   for (const s of recusas) assert.equal(classificarPush(s), 'recusado', s);
   const outros = [
+    // O mesmo motivo solto no stderr, sem a linha de rejected, não vale nova tentativa.
+    "remote: error: cannot lock ref 'refs/heads/dados': reference already exists",
+    // Uma linha de estado que o remoto injeta pelo stderr sai sempre com o prefixo `remote: `.
+    'remote: !\tHEAD:refs/heads/dados\t[remote rejected] (reference already exists)',
+    'remote:  ! [remote rejected] HEAD -> refs/heads/dados (reference already exists)',
+    // O `already exists` do cliente (ao recusar trocar uma tag) não é corrida de ref.
+    '!\trefs/tags/x:refs/tags/x\t[rejected] (already exists)',
     '!\tHEAD:refs/heads/dados\t[remote rejected] (pre-receive hook declined)',
     '!\tHEAD:refs/heads/dados\t[remote rejected] (protected branch hook declined)',
     "fatal: unable to access 'https://github.com/x/y/': Could not resolve host: github.com",
@@ -421,6 +436,74 @@ test('(c) dois começos ao mesmo tempo: o segundo é recusado e grava por cima d
       },
     });
     assert.deepEqual([r.tentativas, r.criou], [2, false]);
+    temOsDoisEfeitos(raiz, remoto);
+    assert.equal(commits(raiz, remoto), 2);
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+  }
+});
+
+test('(c) o outro começo chega entre o anúncio das refs e a atualização: a ref já criada (reference already exists) vale nova tentativa', async (t) => {
+  const raiz = pasta();
+  try {
+    const remoto = novoRemoto(raiz);
+    // O commit do outro gravador, feito antes num segundo remoto e trazido para o do teste numa ref auxiliar.
+    const outro = join(raiz, 'outro.git');
+    git(raiz, raiz, 'init', '-q', '--bare', outro);
+    assert.equal((await gravar(raiz, outro, 'arvore-outro', incidente())).criou, true);
+    git(raiz, raiz, '--git-dir', remoto, 'fetch', '-q', outro, 'refs/heads/dados:refs/preparado/outro');
+    const preparado = git(raiz, raiz, '--git-dir', remoto, 'rev-parse', '--verify', 'refs/preparado/outro').trim();
+    assert.equal(existeRamo(raiz, remoto), false);
+
+    // Só no primeiro push: depois de o receive-pack anunciar as refs (sem o dados), o gancho cria o dados com o
+    // commit do outro. Fora da quarentena, que o git não deixa atualizar ref de dentro dela.
+    // A marca fica no próprio remoto bare, a pasta em que o pre-receive roda.
+    const gancho = join(remoto, 'hooks', 'pre-receive');
+    writeFileSync(
+      gancho,
+      [
+        '#!/bin/sh',
+        'cat >/dev/null',
+        'if [ ! -e ./gancho-rodou ]; then',
+        '  : >./gancho-rodou',
+        `  (unset GIT_QUARANTINE_PATH GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; git update-ref refs/heads/dados ${preparado} '') || exit 1`,
+        'fi',
+        'exit 0',
+        '',
+      ].join('\n'),
+    );
+    chmodSync(gancho, 0o755);
+
+    const pushes = [];
+    const avisos = [];
+    const r = await gravar(raiz, remoto, 'arvore-checagem', {
+      ...checagem(),
+      avisar: (texto) => avisos.push(texto),
+      git: async (args, o) => {
+        const feito = await executarGit(args, o);
+        if (args[0] === 'push') pushes.push(feito);
+        return feito;
+      },
+    });
+
+    // A primeira tentativa foi recusada pela ref já criada, não por «fetch first». Cada versão do git relata de um
+    // jeito na linha `[remote rejected]` (`reference already exists` ou `failed to update ref`); a causa de fundo,
+    // `reference already exists`, aparece na saída nas duas.
+    const primeiro = `${pushes[0].saida}\n${pushes[0].erro}`;
+    const recusa = primeiro.split('\n').find((linha) => linha.includes('[remote rejected]'));
+    t.diagnostic(`primeiro push: ${recusa}`);
+    assert.notEqual(pushes[0].codigo, 0);
+    // No git mais velho (`failed to update ref`), este teste passaria mesmo sem o motivo novo em RECUSAS; a guarda
+    // da regex são os casos puros de «classificar o push».
+    assert.match(recusa ?? '', /\[remote rejected\][^\n]*\((reference already exists|failed to update ref)\)/, primeiro);
+    assert.ok(primeiro.includes('reference already exists'), primeiro);
+    assert.ok(!primeiro.includes('fetch first'), primeiro);
+
+    assert.ok(existsSync(join(remoto, 'gancho-rodou')), 'o gancho gravou a marca no remoto');
+    assert.equal(pushes.length, 2);
+    assert.deepEqual([r.tentativas, r.criou], [2, false]);
+    assert.equal(avisos.length, 1);
+    assert.match(avisos[0], /Push recusado.*Nova tentativa \(2 de 4\)/);
     temOsDoisEfeitos(raiz, remoto);
     assert.equal(commits(raiz, remoto), 2);
   } finally {
