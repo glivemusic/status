@@ -3,31 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
 <title>Agronomy Center</title>
-<link rel="icon" href="data:,">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="estilo.css">
 <script type="module" src="pagina.mjs"></script>
 </head>
 <body>
 <div class="pagina">
   <header class="topo">
-    <div class="topo-texto">
-      <p class="marca"><span class="hexagono" aria-hidden="true"></span><span id="marca"></span></p>
-      <h1 class="titulo" id="titulo"></h1>
+    <p class="marca"><img class="marca-simbolo" src="marca/simbolo.svg" alt="" width="32" height="32"><span id="marca"></span></p>
+    <h1 class="titulo" id="titulo"></h1>
+    <div class="idioma" id="idioma" role="group" hidden>
+      <span class="idioma-rotulo" id="idioma-rotulo" aria-hidden="true"></span>
+      <span class="idioma-opcoes">
+        <button class="idioma-opcao" id="idioma-pt" type="button" lang="pt-BR" data-idioma="pt-BR" aria-pressed="false"></button>
+        <button class="idioma-opcao" id="idioma-es" type="button" lang="es-PY" data-idioma="es-PY" aria-pressed="false"></button>
+      </span>
     </div>
-    <button class="idioma" id="idioma" type="button" hidden></button>
   </header>
   <main>
     <noscript>
-      <p class="aviso" lang="pt-BR">Esta página precisa de JavaScript para mostrar a situação dos sistemas.</p>
-      <p class="aviso" lang="es-PY">Esta página necesita JavaScript para mostrar el estado de los sistemas.</p>
+      <p class="aviso" lang="pt-BR"><svg class="icone icone-info" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg><span>Esta página precisa de JavaScript para mostrar a situação dos sistemas.</span></p>
+      <p class="aviso" lang="es-PY"><svg class="icone icone-info" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg><span>Esta página necesita JavaScript para mostrar el estado de los sistemas.</span></p>
     </noscript>
-    <p class="aviso" id="aviso" hidden></p>
-    <div class="geral" id="geral" role="status" hidden></div>
+    <p class="aviso" id="aviso" hidden><svg class="icone icone-info" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg><span id="aviso-texto"></span></p>
+    <div class="geral" id="geral" role="status" hidden>
+      <svg class="icone icone-ok" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.8 2.8L16.2 9.6"/></svg>
+      <svg class="icone icone-degradado" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M12 3.8L21.2 19.6H2.8z"/><path d="M12 10v4.4"/><path d="M12 17v.1"/></svg>
+      <svg class="icone icone-fora" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+      <svg class="icone icone-atrasado" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.4 2.2"/></svg>
+      <span id="geral-texto"></span>
+    </div>
     <section class="cartao" id="cartao" hidden>
       <p class="cartao-legenda" id="legenda"></p>
       <ul class="linhas" id="linhas"></ul>

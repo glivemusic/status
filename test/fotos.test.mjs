@@ -31,6 +31,18 @@ test('fotos.mjs existe, sem dependência, e não chama endereço fora do 127.0.0
   assert.match(codigo, /finally \{\s*await encerrar\(\);/);
 });
 
+test('D19: os cenários das fotos; o ramo dados é lido com git show, sem mexer na pasta de trabalho', () => {
+  const codigo = readFileSync(ARQUIVO, 'utf8');
+  assert.match(codigo, /const CENARIOS = \['exemplo', 'tudo-ok', 'fora', 'atrasado', 'real'\];/);
+  assert.ok(codigo.includes("['-C', RAIZ, 'show', `origin/dados:${nome}`]"));
+  assert.ok(!/'(checkout|switch|reset|worktree|stash|pull|fetch)'/.test(codigo), 'nenhum comando git que mexa');
+  // Os cenários de teste vão a uma pasta temporária, pelo scripts/cenario.mjs.
+  assert.match(codigo, /temporaria\(`status-fotos-\$\{CENARIO\}-`\)/);
+  assert.match(codigo, /'scripts', 'cenario\.mjs'/);
+  // O --interagir imprime a árvore de acessibilidade do Chrome.
+  assert.match(codigo, /Accessibility\.getPartialAXTree/);
+});
+
 test('fotos.mjs encerra tudo com SIGINT, SIGTERM e SIGHUP, e mensagem malformada não escapa do finally', () => {
   const codigo = readFileSync(ARQUIVO, 'utf8');
   for (const sinal of ['SIGHUP', 'SIGINT', 'SIGTERM']) assert.ok(codigo.includes(`${sinal}:`), sinal);

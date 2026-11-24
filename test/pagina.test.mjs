@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { termoProibido } from '../lib/vazamento.mjs';
+import { termoProibido, textoParaConferir } from '../lib/vazamento.mjs';
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const EXEMPLO = join(RAIZ, 'exemplo');
@@ -112,8 +112,9 @@ class Elemento {
 }
 
 // Desenha a página montada em `dir`, no idioma, com o relógio em `agora`. -> o document falso.
+// `estreita`: a tela abaixo de 48rem (D19: 30 barras); sem ela, não há matchMedia (como antes).
 let rodada = 0;
-async function desenhar(dir, idioma, agora = AGORA) {
+async function desenhar(dir, idioma, agora = AGORA, { estreita } = {}) {
   const ids = new Map();
   const document = {
     documentElement: new Elemento('html'),
@@ -124,8 +125,16 @@ async function desenhar(dir, idioma, agora = AGORA) {
       if (!ids.has(id)) ids.set(id, new Elemento('div'));
       return ids.get(id);
     },
+    addEventListener: () => {},
   };
-  const antes = { document: globalThis.document, location: globalThis.location, history: globalThis.history, fetch: globalThis.fetch, now: Date.now };
+  const antes = {
+    document: globalThis.document,
+    location: globalThis.location,
+    history: globalThis.history,
+    fetch: globalThis.fetch,
+    matchMedia: globalThis.matchMedia,
+    now: Date.now,
+  };
   Object.assign(globalThis, {
     document,
     location: { search: `?lang=${idioma}`, href: `http://127.0.0.1/status/?lang=${idioma}` },
@@ -134,13 +143,26 @@ async function desenhar(dir, idioma, agora = AGORA) {
       const texto = readFileSync(join(dir, caminho), 'utf8');
       return { ok: true, status: 200, json: async () => JSON.parse(texto) };
     },
+    matchMedia:
+      estreita === undefined
+        ? undefined
+        : (consulta) => {
+            assert.equal(consulta, '(max-width: 47.99rem)');
+            return { matches: estreita, addEventListener: () => {} };
+          },
   });
   Date.now = () => Date.parse(agora);
   try {
     rodada += 1;
     await import(`${pathToFileURL(join(dir, 'pagina.mjs')).href}?rodada=${rodada}`);
   } finally {
-    Object.assign(globalThis, { document: antes.document, location: antes.location, history: antes.history, fetch: antes.fetch });
+    Object.assign(globalThis, {
+      document: antes.document,
+      location: antes.location,
+      history: antes.history,
+      fetch: antes.fetch,
+      matchMedia: antes.matchMedia,
+    });
     Date.now = antes.now;
   }
   return { $: (id) => ids.get(id), lang: document.documentElement.lang };
@@ -167,9 +189,9 @@ test('com dados reais: sem a faixa de exemplo; as linhas em breve com o nome e �
     const p = await desenhar(site, idioma);
     assert.equal(p.lang, idioma);
     assert.equal(p.$('aviso').hidden, true, 'sem a faixa de exemplo');
-    assert.equal(p.$('aviso').textContent, '');
+    assert.equal(p.$('aviso-texto').textContent, '');
     // O banco e o login tinham «fora» e «degradado» antigos: não entram no geral.
-    assert.equal(p.$('geral').textContent, geral);
+    assert.equal(p.$('geral-texto').textContent, geral);
     assert.equal(p.$('geral').className, 'geral geral-ok');
     const linhas = linhasDesenhadas(p);
     assert.deepEqual(linhas.map((l) => l.nome), config.linhas.map((l) => l.nome[idioma]));
@@ -192,7 +214,7 @@ test('com os dados de exemplo: a página fica como antes de D17 (faixa, as 4 lin
   const site = montar('exemplo');
   const p = await desenhar(site, 'pt-BR', '2026-12-01T00:00:00Z');
   assert.equal(p.$('aviso').hidden, false);
-  assert.equal(p.$('aviso').textContent, 'Dados de exemplo: a página ainda não está ligada à checagem real.');
+  assert.equal(p.$('aviso-texto').textContent, 'Dados de exemplo: a página ainda não está ligada à checagem real.');
   assert.equal(p.$('geral').className, 'geral geral-degradado', 'o banco degradado do exemplo entra no geral');
   const linhas = linhasDesenhadas(p);
   assert.deepEqual(linhas.map((l) => l.estado), ['Operacional', 'Operacional', 'Instável', 'Operacional']);
@@ -202,6 +224,106 @@ test('com os dados de exemplo: a página fica como antes de D17 (faixa, as 4 lin
   }
   assert.equal(linhas[3].verificado, 1, 'o «Verificado há» do satélite');
   assert.ok(!linhas.some((l) => l.classe.includes('em_breve')));
+});
+
+// D19: o que a página mostra de uma linha com barras.
+function barrasDaLinha(pagina, n = 0) {
+  const li = pagina.$('linhas').filhos[n];
+  const grupo = li.todos('barras')[0];
+  return {
+    grupo,
+    barras: li.todos('barra'),
+    rodape: li.todos('linha-rodape')[0].filhos.map((f) => f.textContent),
+    dica: li.todos('dica')[0],
+  };
+}
+
+test('D19: o seletor PT-BR/ES-PY com o rótulo «Idioma» e a opção ativa em aria-pressed, nos dois idiomas', async () => {
+  const site = montar('exemplo');
+  for (const [idioma, pt, es] of [
+    ['pt-BR', 'true', 'false'],
+    ['es-PY', 'false', 'true'],
+  ]) {
+    const p = await desenhar(site, idioma, '2026-11-23T21:00:00Z');
+    assert.equal(p.lang, idioma);
+    assert.equal(p.$('idioma').hidden, false);
+    assert.equal(p.$('idioma-rotulo').textContent, 'Idioma');
+    assert.equal(p.$('idioma').getAttribute('aria-label'), 'Idioma', 'o nome do grupo, sem caixa alta');
+    assert.equal(p.$('idioma-pt').textContent, 'PT-BR');
+    assert.equal(p.$('idioma-es').textContent, 'ES-PY');
+    assert.equal(p.$('idioma-pt').getAttribute('aria-pressed'), pt, idioma);
+    assert.equal(p.$('idioma-es').getAttribute('aria-pressed'), es, idioma);
+  }
+});
+
+test('D19: a faixa geral por estado (a classe escolhe a cor e o ícone), inclusive «Monitoramento atrasado»', async () => {
+  const site = montar('exemplo');
+  const p = await desenhar(site, 'pt-BR', '2026-11-23T21:00:00Z');
+  assert.equal(p.$('geral').className, 'geral geral-degradado');
+  assert.equal(p.$('geral-texto').textContent, 'Alguns serviços estão lentos ou instáveis');
+  // O cenário de teste «atrasado» (scripts/cenario.mjs): a última checagem tem 2 h.
+  for (const [cenario, classe] of [['atrasado', 'geral geral-atrasado'], ['fora', 'geral geral-fora'], ['tudo-ok', 'geral geral-ok']]) {
+    const dados = temporaria();
+    execFileSync(process.execPath, ['scripts/cenario.mjs', '--cenario', cenario, '--saida', dados], { cwd: RAIZ });
+    const p2 = await desenhar(montar(dados), 'es-PY');
+    assert.equal(p2.$('geral').className, classe, cenario);
+  }
+  const dados = temporaria();
+  execFileSync(process.execPath, ['scripts/cenario.mjs', '--cenario', 'atrasado', '--saida', dados], { cwd: RAIZ });
+  const atrasada = await desenhar(montar(dados), 'es-PY');
+  assert.equal(atrasada.$('geral').className, 'geral geral-atrasado');
+  assert.equal(atrasada.$('geral-texto').textContent, 'Monitoreo atrasado: la última verificación tiene más de 60 minutos');
+});
+
+test('D19: 90 barras num grupo com o resumo, um só ponto de parada (hoje) e o nome acessível de cada dia', async () => {
+  const site = montar('exemplo');
+  const p = await desenhar(site, 'pt-BR', '2026-11-23T21:00:00Z');
+  assert.equal(p.$('legenda').textContent, 'Últimos 90 dias');
+  const { grupo, barras, rodape, dica } = barrasDaLinha(p, 0);
+  assert.equal(grupo.getAttribute('role'), 'group');
+  assert.match(grupo.getAttribute('aria-label'), /^Últimos 90 dias: \d+,\d\d % de disponibilidade$/);
+  assert.equal(barras.length, 90);
+  assert.deepEqual(barras.map((b) => b.tabIndex).filter((t) => t === 0).length, 1);
+  assert.equal(barras.at(-1).tabIndex, 0, 'hoje é a parada de Tab');
+  for (const b of barras) {
+    assert.match(b.getAttribute('aria-label'), /^\d{1,2} de [a-z]{3}\.: (\d+,\d\d % no ar, \d+ min fora do ar|sem dados)$/);
+    assert.equal(b.title, undefined, 'sem title (a dica é a da página)');
+  }
+  assert.equal(barras.at(-1).getAttribute('aria-label').slice(0, 11), '23 de nov.:');
+  // O dia sem registro do exemplo (5/9).
+  assert.ok(barras.some((b) => b.getAttribute('aria-label') === '5 de set.: sem dados'));
+  // O dia 2/11 do aplicativo: 50 min fora do ar, no nome e na dica.
+  const dia2 = barras.find((b) => b.getAttribute('aria-label').startsWith('2 de nov.:'));
+  assert.match(dia2.getAttribute('aria-label'), /^2 de nov\.: \d+,\d\d % no ar, 50 min fora do ar$/);
+  assert.match(dia2.dataset.dica, /^2 de nov\.: \d+,\d\d % no ar · 50 min fora do ar$/);
+  assert.equal(dia2.className, 'barra barra-vermelha');
+  assert.equal(dica.hidden, true);
+  assert.equal(dica.getAttribute('aria-hidden'), 'true');
+  assert.deepEqual(rodape.slice(0, 1).concat(rodape.slice(2)), ['Há 90 dias', 'Hoje']);
+  assert.match(rodape[1], /^\d+,\d\d % de disponibilidade$/);
+});
+
+test('D19: abaixo de 48rem, 30 barras, «Há 30 dias» e o percentual dos mesmos 90 dias, nos dois idiomas', async () => {
+  const site = montar('exemplo');
+  const larga = barrasDaLinha(await desenhar(site, 'pt-BR', '2026-11-23T21:00:00Z', { estreita: false }), 0);
+  const pct = larga.rodape[1].replace(' de disponibilidade', '');
+  for (const [idioma, legenda, atras, texto] of [
+    ['pt-BR', 'Últimos 30 dias', 'Há 30 dias', `${pct} de disponibilidade em 90 dias`],
+    ['es-PY', 'Últimos 30 días', 'Hace 30 días', `${pct} de disponibilidad en 90 días`],
+  ]) {
+    const p = await desenhar(site, idioma, '2026-11-23T21:00:00Z', { estreita: true });
+    assert.equal(p.$('legenda').textContent, legenda);
+    const { grupo, barras, rodape } = barrasDaLinha(p, 0);
+    assert.equal(barras.length, 30);
+    assert.equal(barras.filter((b) => b.tabIndex === 0).length, 1);
+    assert.equal(barras.at(-1).tabIndex, 0);
+    // Os 30 últimos dos 90: o mais velho é 25/10.
+    assert.equal(barras[0].getAttribute('aria-label').slice(0, 11), idioma === 'pt-BR' ? '25 de out.:' : '25 de oct.:');
+    assert.deepEqual(rodape, [atras, texto, idioma === 'pt-BR' ? 'Hoje' : 'Hoy']);
+    // O resumo do grupo continua o dos 90 dias.
+    assert.ok(grupo.getAttribute('aria-label').includes(pct));
+  }
+  assert.equal(larga.barras.length, 90);
 });
 
 test('o site com a fonte dados não leva nada de exemplo/', () => {
@@ -235,7 +357,9 @@ test('o CNAME vai com as duas fontes, uma linha só, e nada publicado tem o ende
     assert.deepEqual(urls, ['https://basefertil.com/']);
     for (const arquivo of arquivos(site)) {
       const texto = readFileSync(arquivo, 'utf8');
-      assert.equal(termoProibido(texto, urls), null, arquivo);
+      // D19: as fontes e a licença delas ficam de fora; dos SVG sai só o espaço de nomes (como no montar-site).
+      const conferido = textoParaConferir(arquivo.slice(site.length + 1), texto);
+      if (conferido !== null) assert.equal(termoProibido(conferido, urls), null, arquivo);
       assert.ok(!texto.includes('basefertil.com/'), `${arquivo} contém o endereço checado`);
     }
   }

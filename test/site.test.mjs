@@ -1,14 +1,14 @@
 // D7 e D9: os dados de exemplo, o site montado (sem vazamento) e o catálogo.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { corDoDia, esperadasNoDia, intervaloDaLinha, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
 import { minutosDesde } from '../lib/tempo.mjs';
-import { TERMOS_PROIBIDOS, termoProibido } from '../lib/vazamento.mjs';
+import { TERMOS_PROIBIDOS, termoProibido, textoParaConferir } from '../lib/vazamento.mjs';
 import { linhasVisiveis } from '../lib/visao.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
@@ -106,7 +106,9 @@ test('o site montado não vaza endereço, fornecedor nem dado interno', () => {
   assert.ok(lista.length >= 8);
   let temSentinel2 = false;
   for (const arquivo of lista) {
-    const original = readFileSync(arquivo, 'utf8');
+    // D19: as fontes e a licença delas ficam de fora; dos SVG sai só o espaço de nomes.
+    const original = textoParaConferir(arquivo.slice(dir.length + 1), readFileSync(arquivo, 'utf8'));
+    if (original === null) continue;
     const texto = original.toLowerCase();
     for (const p of proibidos) assert.ok(!texto.includes(p.toLowerCase()), `${arquivo} contém «${p}»`);
     // PU e cota (palavra inteira), pela mesma função que o montar-site usa.
@@ -146,6 +148,32 @@ test('o site montado leva só o que a página usa', () => {
   const dir = temporaria();
   node('scripts/montar-site.mjs', '--fonte', 'exemplo', '--saida', dir);
   const nomes = arquivos(dir).map((a) => a.slice(dir.length + 1)).sort();
+  // D19: a lista exata do que se publica.
+  assert.deepEqual(nomes, [
+    'CNAME',
+    'dados/dias.json',
+    'dados/estado.json',
+    'dados/incidentes.json',
+    'estilo.css',
+    'favicon.svg',
+    'fontes/LICENSE.txt',
+    'fontes/inter-latin-400.woff2',
+    'fontes/inter-latin-500.woff2',
+    'fontes/inter-latin-600.woff2',
+    'fontes/inter-latin-ext-400.woff2',
+    'fontes/inter-latin-ext-500.woff2',
+    'fontes/inter-latin-ext-600.woff2',
+    'index.html',
+    'lib/barras.mjs',
+    'lib/dias.mjs',
+    'lib/geral.mjs',
+    'lib/incidentes.mjs',
+    'lib/tempo.mjs',
+    'lib/texto.mjs',
+    'marca/simbolo.svg',
+    'pagina.mjs',
+    'textos.mjs',
+  ]);
   assert.ok(!nomes.some((n) => n.startsWith('lib/') && /classificar|checagem|manual|estado\.mjs|visao/.test(n)));
   const estado = JSON.parse(readFileSync(join(dir, 'dados', 'estado.json'), 'utf8'));
   assert.deepEqual(Object.keys(estado), ['exemplo', 'agora', 'verificado_em', 'linhas']);
@@ -186,6 +214,56 @@ test('com dados reais, não há marca de exemplo; as linhas em breve (D17) vão 
   }
   const incidentes = JSON.parse(readFileSync(join(saida, 'dados', 'incidentes.json'), 'utf8'));
   assert.deepEqual(incidentes, { incidentes: [] });
+});
+
+test('D19: montar-site recusa, sem publicar nada, arquivo, pasta ou link fora da lista e fonte sem wOF2', () => {
+  // Uma cópia do repositório (só o que o montar-site lê), mexida em site/ caso a caso.
+  const casos = [
+    ['um arquivo a mais', (site) => writeFileSync(join(site, 'extra.txt'), 'x'), /site\/extra\.txt está fora da lista/],
+    ['uma pasta a mais', (site) => mkdirSync(join(site, 'outra')), /a pasta site\/outra está fora da lista/],
+    ['um arquivo a mais em fontes/', (site) => writeFileSync(join(site, 'fontes', 'inter-latin-700.woff2'), 'wOF2'), /site\/fontes\/inter-latin-700\.woff2 está fora da lista/],
+    ['um link simbólico', (site) => symlinkSync(join(site, 'index.html'), join(site, 'atalho.html')), /site\/atalho\.html é um link simbólico/],
+    ['uma fonte que não é woff2', (site) => writeFileSync(join(site, 'fontes', 'inter-latin-400.woff2'), 'https://fora'), /site\/fontes\/inter-latin-400\.woff2 não é woff2/],
+    ['um arquivo da lista que falta', (site) => rmSync(join(site, 'favicon.svg')), /falta site\/favicon\.svg/],
+  ];
+  for (const [caso, mexer, mensagem] of casos) {
+    const repo = temporaria();
+    for (const pasta of ['scripts', 'lib', 'site', 'config', 'exemplo']) cpSync(join(RAIZ, pasta), join(repo, pasta), { recursive: true });
+    mexer(join(repo, 'site'));
+    const saida = join(temporaria(), 'site');
+    let erro;
+    try {
+      execFileSync(process.execPath, [join(repo, 'scripts', 'montar-site.mjs'), '--fonte', 'exemplo', '--saida', saida], { encoding: 'utf8', stdio: 'pipe' });
+    } catch (e) {
+      erro = e;
+    }
+    assert.ok(erro, `devia falhar com ${caso}`);
+    assert.equal(erro.status, 1, caso);
+    assert.match(erro.stderr, mensagem, caso);
+    assert.ok(!existsSync(saida), `${caso}: nada gravado`);
+  }
+});
+
+test('D19: o .DS_Store em site/ e em site/fontes/ é ignorado: monta, e não vai ao site', () => {
+  const repo = temporaria();
+  for (const pasta of ['scripts', 'lib', 'site', 'config', 'exemplo']) cpSync(join(RAIZ, pasta), join(repo, pasta), { recursive: true });
+  writeFileSync(join(repo, 'site', '.DS_Store'), 'x');
+  writeFileSync(join(repo, 'site', 'fontes', '.DS_Store'), 'x');
+  const saida = join(temporaria(), 'site');
+  execFileSync(process.execPath, [join(repo, 'scripts', 'montar-site.mjs'), '--fonte', 'exemplo', '--saida', saida], { encoding: 'utf8', stdio: 'pipe' });
+  const nomes = arquivos(saida).map((a) => a.slice(saida.length + 1));
+  assert.ok(nomes.includes('index.html'), 'montou');
+  assert.ok(!nomes.some((n) => n.endsWith('.DS_Store')), 'o .DS_Store não foi publicado');
+  // Só o nome exato: um parecido continua dando erro.
+  writeFileSync(join(repo, 'site', '.DS_Store.txt'), 'x');
+  let erro;
+  try {
+    execFileSync(process.execPath, [join(repo, 'scripts', 'montar-site.mjs'), '--fonte', 'exemplo', '--saida', join(temporaria(), 'site')], { encoding: 'utf8', stdio: 'pipe' });
+  } catch (e) {
+    erro = e;
+  }
+  assert.equal(erro?.status, 1);
+  assert.match(erro.stderr, /site\/\.DS_Store\.txt está fora da lista/);
 });
 
 test('montar-site falha (código ≠ 0) se a fonte de dados contém um termo proibido', () => {
@@ -251,19 +329,74 @@ test('o catálogo tem as mesmas chaves nos dois idiomas, sem texto vazio, com os
   assert.equal(es['linha.em_breve'], 'Próximamente');
   assert.equal(pt['geral.ok'], 'Todos os sistemas operacionais');
   assert.equal(es['barra.dica'], '{dia}: {pct} en línea · {minutos} min fuera de línea');
+  // D19: o seletor, as 30 barras do celular com o percentual dos 90 dias e o nome acessível de cada dia.
+  for (const idioma of ['pt-BR', 'es-PY']) {
+    assert.equal(TEXTOS[idioma]['idioma.rotulo'], 'Idioma');
+    assert.equal(TEXTOS[idioma]['idioma.pt'], 'PT-BR');
+    assert.equal(TEXTOS[idioma]['idioma.es'], 'ES-PY');
+    assert.equal(TEXTOS[idioma]['barra.data'], '{d} de {mes}');
+  }
+  assert.ok(!Object.hasOwn(pt, 'idioma.trocar'), 'o botão «Español» saiu');
+  assert.equal(pt['barras.dias_atras'], 'Há {n} dias');
+  assert.equal(es['barras.dias_atras'], 'Hace {n} días');
+  assert.equal(pt['barras.legenda_30'], 'Últimos 30 dias');
+  assert.equal(es['barras.legenda_30'], 'Últimos 30 días');
+  assert.equal(pt['barras.disponibilidade_90'], '{pct} de disponibilidade em 90 dias');
+  assert.equal(es['barras.disponibilidade_90'], '{pct} de disponibilidad en 90 días');
+  assert.equal(pt['barra.nome'], '{dia}: {pct} no ar, {minutos} min fora do ar');
+  assert.equal(es['barra.nome'], '{dia}: {pct} en línea, {minutos} min fuera de línea');
 });
 
+test('D19: as fontes, a licença, o favicon e o símbolo vão ao site montado, iguais aos do repositório', () => {
+  const dir = temporaria();
+  node('scripts/montar-site.mjs', '--fonte', 'exemplo', '--saida', dir);
+  const fixos = [
+    ...['latin', 'latin-ext'].flatMap((s) => [400, 500, 600].map((p) => `fontes/inter-${s}-${p}.woff2`)),
+    'fontes/LICENSE.txt',
+    'favicon.svg',
+    'marca/simbolo.svg',
+  ];
+  assert.equal(fixos.length, 9);
+  for (const nome of fixos) {
+    const publicado = readFileSync(join(dir, nome));
+    assert.ok(publicado.length > 0, nome);
+    assert.ok(publicado.equals(readFileSync(join(RAIZ, 'site', nome))), `${nome} igual ao de site/`);
+  }
+  // woff2 de verdade, e a licença da fonte é a SIL OFL.
+  for (const nome of fixos.filter((n) => n.endsWith('.woff2'))) {
+    assert.equal(readFileSync(join(dir, nome)).subarray(0, 4).toString('latin1'), 'wOF2', nome);
+  }
+  assert.match(readFileSync(join(dir, 'fontes', 'LICENSE.txt'), 'utf8'), /SIL Open Font License, Version 1\.1/);
+  // Só o que sai da conferência: as fontes e a licença inteiras; dos SVG, só o espaço de nomes.
+  for (const nome of fixos.filter((n) => n.startsWith('fontes/'))) assert.equal(textoParaConferir(nome, 'x'), null, nome);
+  // Só os sete nomes exatos.
+  for (const nome of ['fontes/outra.woff2', 'fontes/inter-latin-700.woff2', 'outra/inter-latin-400.woff2', 'outra/LICENSE.txt', 'fontes/outra.txt', 'LICENSE.txt']) {
+    assert.equal(textoParaConferir(nome, 'https://x'), 'https://x', nome);
+  }
+  assert.equal(textoParaConferir('a.svg', '<svg xmlns="http://www.w3.org/2000/svg"><a href="https://x"/></svg>'), '<svg ><a href="https://x"/></svg>');
+  assert.equal(termoProibido(textoParaConferir('marca/simbolo.svg', readFileSync(join(dir, 'marca', 'simbolo.svg'), 'utf8'))), null);
+  assert.equal(termoProibido(textoParaConferir('favicon.svg', readFileSync(join(dir, 'favicon.svg'), 'utf8'))), null);
+});
 test('nenhum arquivo de site/ usa innerHTML; o HTML tem a CSP, o referrer e o robots de D9', () => {
-  for (const arquivo of arquivos(join(RAIZ, 'site'))) {
+  for (const arquivo of arquivos(join(RAIZ, 'site')).filter((a) => !a.endsWith('.woff2'))) {
     const texto = readFileSync(arquivo, 'utf8');
     assert.ok(!/innerHTML|outerHTML|insertAdjacentHTML|document\.write/.test(texto), arquivo);
   }
   const html = readFileSync(join(RAIZ, 'site', 'index.html'), 'utf8');
+  // D19: font-src e img-src só 'self' (a fonte, o símbolo e o favicon são daqui).
   assert.ok(
     html.includes(
-      `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">`,
+      `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">`,
     ),
   );
+  const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]*)"/)[1];
+  for (const diretiva of csp.split(';').map((d) => d.trim())) {
+    const [, ...fontes] = diretiva.split(/\s+/);
+    for (const f of fontes) assert.ok(["'self'", "'none'"].includes(f), `${diretiva}: só 'self' ou 'none'`);
+  }
+  assert.match(csp, /(^|; )font-src 'self'(;|$)/);
+  assert.ok(html.includes('<link rel="icon" href="favicon.svg" type="image/svg+xml">'));
+  assert.ok(!/data:/.test(html), 'sem data: (o favicon é arquivo)');
   assert.ok(html.includes('<meta name="referrer" content="no-referrer">'));
   assert.ok(html.includes('<meta name="robots" content="noindex">'));
   assert.ok(!/<script(?![^>]*\bsrc="pagina\.mjs")/.test(html), 'só o script da página');

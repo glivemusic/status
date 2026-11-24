@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+	<style>
+		@media (prefers-color-scheme: light) {
+			.contorno { stroke: #9d4d16; }
+		}
+	</style>
+	<g class="contorno" fill="none" stroke-width="5" stroke-linejoin="round">
+		<path d="M2 82 L18 18 L28 18 L44 82 L33 82 L29.5 68 L16.5 68 L13 82 Z M19.5 56 L26.5 56 L23 42 Z" />
+		<path d="M92.85 29.43 A22 32 0 1 0 92.85 70.57 L84.43 63.5 A11 21 0 1 1 84.43 36.5 Z" />
+	</g>
+	<g fill="#d66a2f" fill-rule="evenodd">
+		<path d="M2 82 L18 18 L28 18 L44 82 L33 82 L29.5 68 L16.5 68 L13 82 Z M19.5 56 L26.5 56 L23 42 Z" />
+		<path d="M92.85 29.43 A22 32 0 1 0 92.85 70.57 L84.43 63.5 A11 21 0 1 1 84.43 36.5 Z" />
+	</g>
+</svg>

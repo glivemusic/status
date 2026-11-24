@@ -1,10 +1,21 @@
-// D12: as fotos da página com os dados de exemplo (ou, com --fonte <pasta>, com outros dados).
-//   node scripts/fotos.mjs --saida <pasta> [--tema claro|escuro] [--fonte exemplo|<pasta>]
-//   node scripts/fotos.mjs --interagir [--tema claro|escuro] [--fonte exemplo|<pasta>]
+// D12 e D19: as fotos da página, com os dados de um cenário.
+//   node scripts/fotos.mjs --saida <pasta> [--cenario C] [--fonte <pasta>] [--tema claro|escuro] [--idioma pt-BR|es-PY]
+//   node scripts/fotos.mjs --interagir [--cenario C] [--fonte <pasta>] [--tema claro|escuro] [--idioma pt-BR|es-PY]
+// Cenários (--cenario, padrão exemplo):
+// - exemplo: os dados de exemplo/;
+// - tudo-ok, fora, atrasado: feitos do exemplo por scripts/cenario.mjs, numa pasta temporária (só para as fotos,
+//   nunca vão ao site publicado);
+// - real: os dados do ramo dados (origin/dados, lidos com `git show`, sem mexer na pasta de trabalho), ou os de
+//   --fonte <pasta> (estado.json, dias.json e incidentes.json). Só --fonte <pasta>, sem --cenario, é o mesmo que real.
 // Monta o site numa pasta temporária, serve em 127.0.0.1 (porta livre, sob /status/) com node:http, abre o
 // Chrome sem janela com perfil temporário e fala com ele pelo protocolo de depuração (WebSocket do Node 22).
-// Fotografa a página inteira em pt-BR e es-PY a 360 e 1440 px e imprime a largura de rolagem e o `lang`.
-// Com --interagir: toca numa barra, troca o idioma e imprime a dica, o ?lang=, o lang e os erros do console.
+// Fotografa a página inteira em pt-BR e es-PY (ou só no --idioma) a 360 e 1440 px e imprime a largura de rolagem
+// e o `lang`.
+// Com --interagir: a 360 px, toca numa barra e troca o idioma pelo seletor (a dica, o ?lang=, o lang, o
+// aria-pressed e a altura das opções); a 1440 px, anda com Tab (o elemento focado e o anel de foco computado), muda
+// o dia com as setas (a dica acompanha), fecha a dica com Esc, passa o mouse numa barra, imprime a árvore de
+// acessibilidade do Chrome (o seletor, o grupo de barras e o dia focado), as fontes carregadas e os erros do
+// console (inclusive os de CSP e de fonte).
 // Encerra o Chrome e o servidor e apaga as pastas temporárias, mesmo em erro e com SIGINT, SIGTERM ou SIGHUP.
 // Não entra no CI (sem Chrome lá).
 // O que é garantido sobre a rede:
@@ -35,23 +46,38 @@ const TIPOS = {
   '.mjs': 'text/javascript; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
 };
+const CENARIOS = ['exemplo', 'tudo-ok', 'fora', 'atrasado', 'real'];
+const ARQUIVOS_DE_DADOS = ['estado.json', 'dias.json', 'incidentes.json'];
 
 const { values } = parseArgs({
   options: {
     saida: { type: 'string' },
     tema: { type: 'string', default: 'claro' },
     interagir: { type: 'boolean', default: false },
-    fonte: { type: 'string', default: 'exemplo' },
+    cenario: { type: 'string' },
+    fonte: { type: 'string' },
+    idioma: { type: 'string' },
   },
 });
-if (!['claro', 'escuro'].includes(values.tema) || (!values.interagir && !values.saida) || !values.fonte) {
-  console.error('Uso: node scripts/fotos.mjs --saida <pasta> [--tema claro|escuro] [--fonte exemplo|<pasta de dados>]');
-  console.error('     node scripts/fotos.mjs --interagir [--tema claro|escuro] [--fonte exemplo|<pasta de dados>]');
+// Compatível com o uso de antes: `--fonte exemplo` é o exemplo; `--fonte <pasta>` sozinho é o cenário real.
+const FONTE_PASTA = values.fonte && values.fonte !== 'exemplo' ? resolve(values.fonte) : null;
+const CENARIO = values.cenario ?? (FONTE_PASTA ? 'real' : 'exemplo');
+if (
+  !['claro', 'escuro'].includes(values.tema) ||
+  (!values.interagir && !values.saida) ||
+  !CENARIOS.includes(CENARIO) ||
+  (FONTE_PASTA && CENARIO !== 'real') ||
+  (values.idioma !== undefined && !IDIOMAS.includes(values.idioma))
+) {
+  const opcoes = `[--cenario ${CENARIOS.join('|')}] [--fonte <pasta, só com real>] [--tema claro|escuro] [--idioma pt-BR|es-PY]`;
+  console.error(`Uso: node scripts/fotos.mjs --saida <pasta> ${opcoes}`);
+  console.error(`     node scripts/fotos.mjs --interagir ${opcoes}`);
   process.exit(2);
 }
-// A fonte vai ao montar-site como está: `exemplo` ou uma pasta com estado.json, dias.json e incidentes.json.
-const FONTE = values.fonte === 'exemplo' ? 'exemplo' : resolve(values.fonte);
 if (!existsSync(CHROME)) {
   console.error(`Erro: o Chrome não está em ${CHROME}.`);
   process.exit(1);
@@ -108,10 +134,35 @@ function temporaria(prefixo) {
   return pasta;
 }
 
-// O site com os dados da fonte (padrão: os de exemplo), em <tmp>/status.
+// Os dados do cenário: `exemplo`, ou uma pasta (temporária, menos a de --fonte) com os três JSON.
+function dadosDoCenario() {
+  if (CENARIO === 'exemplo') return 'exemplo';
+  if (CENARIO === 'real' && FONTE_PASTA) return FONTE_PASTA;
+  const pasta = temporaria(`status-fotos-${CENARIO}-`);
+  if (CENARIO === 'real') {
+    // O ramo dados, como está no origin, sem checkout: um arquivo que falta fica com o padrão do montar-site.
+    for (const nome of ARQUIVOS_DE_DADOS) {
+      let conteudo;
+      try {
+        conteudo = execFileSync('git', ['-C', RAIZ, 'show', `origin/dados:${nome}`], { stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch {
+        if (nome === 'estado.json') throw new Error('não li origin/dados:estado.json (use --fonte <pasta>).');
+        continue;
+      }
+      writeFileSync(join(pasta, nome), conteudo);
+    }
+    return pasta;
+  }
+  execFileSync(process.execPath, [join(RAIZ, 'scripts', 'cenario.mjs'), '--cenario', CENARIO, '--saida', pasta], {
+    stdio: ['ignore', 'ignore', 'inherit'],
+  });
+  return pasta;
+}
+
+// O site com os dados do cenário, em <tmp>/status.
 function montarSite() {
   const raiz = join(temporaria('status-fotos-site-'), 'status');
-  execFileSync(process.execPath, [join(RAIZ, 'scripts', 'montar-site.mjs'), '--fonte', FONTE, '--saida', raiz], {
+  execFileSync(process.execPath, [join(RAIZ, 'scripts', 'montar-site.mjs'), '--fonte', dadosDoCenario(), '--saida', raiz], {
     stdio: ['ignore', 'ignore', 'inherit'],
   });
   return raiz;
@@ -326,7 +377,8 @@ async function abrirPagina(cdp, url, largura) {
 
 async function fotografar(cdp, base, saida) {
   mkdirSync(saida, { recursive: true });
-  for (const idioma of IDIOMAS) {
+  console.log(`Cenário ${CENARIO}, tema ${values.tema}.`);
+  for (const idioma of values.idioma ? [values.idioma] : IDIOMAS) {
     for (const largura of LARGURAS) {
       const pagina = await abrirPagina(cdp, `${base}?lang=${idioma}`, largura);
       const m = await pagina.avaliar(
@@ -371,43 +423,218 @@ async function tocar(pagina, seletor) {
   await esperar(300);
 }
 
-async function interagir(cdp, base) {
-  const largura = 360;
-  const pagina = await abrirPagina(cdp, `${base}?lang=pt-BR`, largura);
-  // A barra amarela do satélite (D11); sem ela, a primeira barra da primeira linha.
-  const barra =
-    "(document.querySelector('.linha:last-child .barra-amarela') ?? document.querySelector('.barra'))";
-  const qual = await pagina.avaliar(`(() => {
-    const b = ${barra};
-    const linha = b.closest('.linha');
-    return { linha: linha.querySelector('.linha-nome').textContent, dia: b.title };
-  })()`);
-  console.log(`Largura ${largura} px, tema ${values.tema}. Toque na barra de «${qual.linha}».`);
-  await tocar(pagina, barra);
-  const dica = await pagina.avaliar(`(() => {
-    const d = ${barra}.closest('.linha').querySelector('.dica');
-    return d.hidden ? null : d.textContent;
-  })()`);
-  console.log(`dica: ${dica ?? '(não apareceu)'}`);
-  const verificado = await pagina.avaliar(
-    "Array.from(document.querySelectorAll('.linha-verificado'), (e) => e.textContent)",
-  );
-  console.log(`verificado: ${verificado.length ? verificado.join(' | ') : '(nenhum)'}`);
+// Uma tecla de verdade (keyDown e keyUp pelo protocolo). Só o Enter leva texto (é o que ativa o botão).
+const TECLAS = { Tab: 9, Enter: 13, Escape: 27, End: 35, Home: 36, ArrowLeft: 37, ArrowRight: 39 };
+async function tecla(pagina, nome) {
+  const base = { key: nome, code: nome, windowsVirtualKeyCode: TECLAS[nome], nativeVirtualKeyCode: TECLAS[nome] };
+  if (nome === 'Enter') await pagina.s('Input.dispatchKeyEvent', { type: 'keyDown', ...base, text: '\r' });
+  else await pagina.s('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...base });
+  await pagina.s('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
+  await esperar(120);
+}
 
-  const antes = await pagina.avaliar('({ busca: location.search, lang: document.documentElement.lang })');
-  console.log(`antes da troca: endereço ${antes.busca || '(sem ?lang=)'}, lang ${antes.lang}`);
-  await tocar(pagina, "document.getElementById('idioma')");
-  const depois = await pagina.avaliar(`({
-    busca: location.search,
-    lang: document.documentElement.lang,
-    botao: document.getElementById('idioma').textContent,
-    geral: document.getElementById('geral').textContent,
-    verificado: Array.from(document.querySelectorAll('.linha-verificado'), (e) => e.textContent),
-  })`);
-  console.log(`depois da troca: endereço ${depois.busca || '(sem ?lang=)'}, lang ${depois.lang}`);
-  console.log(`  botão: ${depois.botao}; geral: ${depois.geral}; verificado: ${depois.verificado.join(' | ') || '(nenhum)'}`);
+// O elemento focado e o anel de foco computado; null se o foco está no corpo da página (ou saiu dela).
+const FOCO = `(() => {
+  const e = document.activeElement;
+  if (!e || e === document.body || e === document.documentElement) return null;
+  const s = getComputedStyle(e);
+  return {
+    elemento: e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (e.className ? '.' + String(e.className).trim().split(/\\s+/).join('.') : ''),
+    nome: e.getAttribute('aria-label') ?? e.textContent.trim(),
+    pressionado: e.getAttribute('aria-pressed'),
+    linha: e.closest('.linha')?.querySelector('.linha-nome')?.textContent ?? null,
+    focoVisivel: e.matches(':focus-visible'),
+    anel: s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor + ', folga ' + s.outlineOffset,
+  };
+})()`;
+
+function mostrarFoco(rotulo, f) {
+  if (!f) {
+    console.log(`  ${rotulo}: (foco fora dos controles da página)`);
+    return;
+  }
+  const extra = [f.pressionado !== null ? `aria-pressed=${f.pressionado}` : null, f.linha ? `linha «${f.linha}»` : null]
+    .filter(Boolean)
+    .join(', ');
+  console.log(`  ${rotulo}: ${f.elemento} «${f.nome}»${extra ? ` (${extra})` : ''}`);
+  console.log(`      :focus-visible ${f.focoVisivel}; anel ${f.anel}`);
+}
+
+// O nó da árvore de acessibilidade do Chrome para o primeiro elemento do seletor: papel, nome e propriedades.
+async function noDeAcessibilidade(pagina, seletor) {
+  const { root } = await pagina.s('DOM.getDocument', { depth: 0 });
+  const { nodeId } = await pagina.s('DOM.querySelector', { nodeId: root.nodeId, selector: seletor });
+  if (!nodeId) return null;
+  const { nodes } = await pagina.s('Accessibility.getPartialAXTree', { nodeId, fetchRelatives: false });
+  const n = nodes.find((x) => !x.ignored) ?? nodes[0];
+  if (!n) return null;
+  const props = (n.properties ?? [])
+    .filter((p) => p.value?.value !== undefined && p.value.value !== false)
+    .map((p) => `${p.name}=${p.value.value}`);
+  return { papel: n.role?.value, nome: n.name?.value ?? '', filhos: n.childIds?.length ?? 0, props, ignorado: n.ignored === true };
+}
+
+function mostrarNo(rotulo, n) {
+  if (!n) {
+    console.log(`  ${rotulo}: (não achado)`);
+    return;
+  }
+  const props = n.props.length ? `; ${n.props.join(', ')}` : '';
+  console.log(`  ${rotulo}: papel ${n.papel}, nome «${n.nome}», ${n.filhos} filhos${n.ignorado ? ', IGNORADO' : ''}${props}`);
+}
+
+function mostrarErros(pagina) {
   console.log(`erros do console: ${pagina.erros.length ? '' : 'nenhum'}`);
   for (const e of pagina.erros) console.log(`  ${e}`);
+}
+
+// A dica da linha da primeira barra que casa com o seletor (null se fechada).
+const dicaDe = (barra) => `(() => {
+  const b = ${barra};
+  const d = b && b.closest('.linha').querySelector('.dica');
+  return !d || d.hidden ? null : d.textContent;
+})()`;
+
+async function interagir(cdp, base) {
+  const inicial = values.idioma ?? 'pt-BR';
+  const outro = inicial === 'pt-BR' ? 'es-PY' : 'pt-BR';
+  console.log(`Cenário ${CENARIO}, tema ${values.tema}, idioma inicial ${inicial}.`);
+
+  // --- 360 px, toque ---
+  let pagina = await abrirPagina(cdp, `${base}?lang=${inicial}`, 360);
+  console.log('\n360 px (toque)');
+  // A barra amarela do satélite (D11); sem ela, a primeira barra da primeira linha.
+  const barra = "(document.querySelector('.linha:last-child .barra-amarela') ?? document.querySelector('.barra'))";
+  const resumo = await pagina.avaliar(`({
+    legenda: document.getElementById('legenda').textContent,
+    barras: Array.from(document.querySelectorAll('.barras'), (g) => g.children.length),
+    rodapes: Array.from(document.querySelectorAll('.linha-rodape'), (r) => Array.from(r.children, (c) => c.textContent).join(' | ')),
+    linha: ${barra}?.closest('.linha').querySelector('.linha-nome').textContent ?? null,
+  })`);
+  console.log(`legenda: ${resumo.legenda}; barras por linha: ${resumo.barras.join(', ') || '(nenhuma)'}`);
+  for (const r of resumo.rodapes) console.log(`  rodapé: ${r}`);
+  if (resumo.linha) {
+    await tocar(pagina, barra);
+    console.log(`toque na barra de «${resumo.linha}»: dica ${(await pagina.avaliar(dicaDe(barra))) ?? '(não apareceu)'}`);
+  } else {
+    console.log('nenhuma barra para tocar');
+  }
+  const verificado = await pagina.avaliar("Array.from(document.querySelectorAll('.linha-verificado'), (e) => e.textContent)");
+  console.log(`verificado: ${verificado.length ? verificado.join(' | ') : '(nenhum)'}`);
+  const seletor = `(() => ({
+    busca: location.search,
+    lang: document.documentElement.lang,
+    rotulo: getComputedStyle(document.getElementById('idioma-rotulo')).display === 'none' ? '(escondido)' : document.getElementById('idioma-rotulo').textContent,
+    opcoes: Array.from(document.querySelectorAll('.idioma-opcao'), (b) => {
+      const r = b.getBoundingClientRect();
+      return b.textContent + ' aria-pressed=' + b.getAttribute('aria-pressed') + ' ' + Math.round(r.width) + 'x' + Math.round(r.height) + ' px';
+    }),
+    geral: document.getElementById('geral-texto').textContent,
+  }))()`;
+  const antes = await pagina.avaliar(seletor);
+  console.log(`antes da troca: endereço ${antes.busca || '(sem ?lang=)'}, lang ${antes.lang}; rótulo «${antes.rotulo}»`);
+  console.log(`  opções: ${antes.opcoes.join(' · ')}`);
+  await tocar(pagina, `document.querySelector('.idioma-opcao[data-idioma="${outro}"]')`);
+  const depois = await pagina.avaliar(seletor);
+  console.log(`depois de tocar ${outro}: endereço ${depois.busca || '(sem ?lang=)'}, lang ${depois.lang}; rótulo «${depois.rotulo}»`);
+  console.log(`  opções: ${depois.opcoes.join(' · ')}`);
+  console.log(`  geral: ${depois.geral}`);
+  mostrarErros(pagina);
+  await pagina.fechar();
+
+  // --- 1440 px, teclado e mouse ---
+  pagina = await abrirPagina(cdp, `${base}?lang=${inicial}`, 1440);
+  console.log('\n1440 px (teclado e mouse)');
+  await pagina.s('Accessibility.enable');
+  const fontes = await pagina.avaliar(`(async () => {
+    await document.fonts.ready;
+    return {
+      corpo: getComputedStyle(document.body).fontFamily,
+      inter600: document.fonts.check('600 15px Inter'),
+      carregadas: Array.from(document.fonts).filter((f) => f.status === 'loaded').map((f) => f.family + ' ' + f.weight + (f.unicodeRange.startsWith('U+0-FF') || f.unicodeRange.startsWith('U+0000') ? ' latin' : ' latin-ext')),
+      peso700: Array.from(document.querySelectorAll('body *')).filter((e) => getComputedStyle(e).fontWeight === '700').map((e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '')),
+    };
+  })()`);
+  console.log(`fonte do corpo: ${fontes.corpo}; Inter 600 pronta: ${fontes.inter600}`);
+  console.log(`fontes carregadas: ${fontes.carregadas.join(', ') || '(nenhuma)'}`);
+  console.log(`elementos com peso 700: ${fontes.peso700.join(', ') || 'nenhum'}`);
+
+  console.log('Tab a partir do início:');
+  const paradas = [];
+  for (let i = 1; i <= 10; i += 1) {
+    await tecla(pagina, 'Tab');
+    const f = await pagina.avaliar(FOCO);
+    mostrarFoco(`Tab ${i}`, f);
+    if (!f) break;
+    paradas.push(f);
+  }
+  console.log(`  paradas de Tab: ${paradas.length} (barras: ${paradas.filter((f) => f.elemento.includes('.barra')).length})`);
+
+  // Volta ao dia de hoje da primeira linha com barras, pelo foco programático, e anda com as setas.
+  const primeiraBarra = "document.querySelector('.barras .barra[tabindex=\"0\"]')";
+  const temBarra = await pagina.avaliar(`(() => { const b = ${primeiraBarra}; if (!b) return false; b.focus(); return true; })()`);
+  if (temBarra) {
+    const focada = "document.activeElement";
+    console.log('Setas no grupo de barras:');
+    mostrarFoco('foco inicial', await pagina.avaliar(FOCO));
+    console.log(`      dica: ${(await pagina.avaliar(dicaDe(focada))) ?? '(fechada)'}`);
+    for (const nome of ['ArrowLeft', 'ArrowLeft', 'ArrowLeft', 'ArrowRight', 'Home', 'ArrowLeft', 'End', 'ArrowRight']) {
+      await tecla(pagina, nome);
+      const r = await pagina.avaliar(`(() => {
+        const e = document.activeElement;
+        const grupo = e.closest('.barras');
+        return {
+          nome: e.getAttribute('aria-label'),
+          indice: grupo ? Array.prototype.indexOf.call(grupo.children, e) : -1,
+          total: grupo ? grupo.children.length : 0,
+          paradas: grupo ? grupo.querySelectorAll('[tabindex="0"]').length : 0,
+        };
+      })()`);
+      const d = await pagina.avaliar(dicaDe(focada));
+      console.log(`  ${nome}: dia ${r.indice + 1}/${r.total} «${r.nome}»; tabindex=0 no grupo: ${r.paradas}; dica: ${d ?? '(fechada)'}`);
+    }
+    console.log('Árvore de acessibilidade do Chrome:');
+    mostrarNo('seletor', await noDeAcessibilidade(pagina, '#idioma'));
+    mostrarNo('  PT-BR', await noDeAcessibilidade(pagina, '#idioma-pt'));
+    mostrarNo('  ES-PY', await noDeAcessibilidade(pagina, '#idioma-es'));
+    mostrarNo('faixa geral', await noDeAcessibilidade(pagina, '#geral'));
+    mostrarNo('grupo de barras', await noDeAcessibilidade(pagina, '.barras'));
+    mostrarNo('dia focado', await noDeAcessibilidade(pagina, '.barras .barra[tabindex="0"]'));
+    mostrarNo('dica', await noDeAcessibilidade(pagina, '.dica'));
+
+    await tecla(pagina, 'Escape');
+    console.log(`Esc: dica ${(await pagina.avaliar(dicaDe(focada))) ?? '(fechada)'}; foco ainda em «${(await pagina.avaliar(FOCO))?.nome}»`);
+
+    // O mouse: sem foco, passa sobre o 10º dia da primeira linha e depois sai.
+    await pagina.avaliar('document.activeElement.blur()');
+    const decimo = "document.querySelector('.barras').children[9]";
+    const ponto = await pagina.avaliar(`(() => {
+      const b = ${decimo};
+      b.scrollIntoView({ block: 'center' });
+      const r = b.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    })()`);
+    await pagina.s('Input.dispatchMouseEvent', { type: 'mouseMoved', x: ponto.x, y: ponto.y });
+    await esperar(150);
+    console.log(`mouse sobre o 10º dia: dica ${(await pagina.avaliar(dicaDe(decimo))) ?? '(fechada)'}`);
+    await pagina.s('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await esperar(150);
+    console.log(`mouse fora das barras: dica ${(await pagina.avaliar(dicaDe(decimo))) ?? '(fechada)'}`);
+    await pagina.s('Input.dispatchMouseEvent', { type: 'mouseMoved', x: ponto.x, y: ponto.y });
+    await esperar(150);
+    await tecla(pagina, 'Escape');
+    console.log(`mouse de volta e Esc: dica ${(await pagina.avaliar(dicaDe(decimo))) ?? '(fechada)'}`);
+  } else {
+    console.log('nenhuma barra na página (setas, Esc e mouse não testados)');
+  }
+
+  // O seletor pelo teclado: foco na opção do outro idioma e Enter.
+  await pagina.avaliar(`document.querySelector('.idioma-opcao[data-idioma="${outro}"]').focus()`);
+  await tecla(pagina, 'Enter');
+  const troca = await pagina.avaliar(seletor);
+  console.log(`Enter em ${outro}: endereço ${troca.busca}, lang ${troca.lang}; ${troca.opcoes.join(' · ')}`);
+  mostrarFoco('foco depois da troca', await pagina.avaliar(FOCO));
+  mostrarErros(pagina);
   await pagina.fechar();
 }
 

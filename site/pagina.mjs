@@ -4,7 +4,6 @@ import { preencher } from './lib/texto.mjs';
 import {
   dataDeAssuncao,
   diaDeAssuncao,
-  formatarDia,
   horaDeAssuncao,
   emMs,
   minutosDesde,
@@ -21,12 +20,17 @@ import {
 } from './lib/dias.mjs';
 import { estadoAtual, incidentesRecentes, partesDaDuracao } from './lib/incidentes.mjs';
 import { estadoGeral, estadosDoGeral } from './lib/geral.mjs';
+import { diaCurto, diaPelaTecla, quantasBarras } from './lib/barras.mjs';
 
 const IDIOMAS = ['pt-BR', 'es-PY'];
 const $ = (id) => document.getElementById(id);
+// D19: abaixo de 48rem, 30 barras (o mesmo limite do CSS).
+const ESTREITA = typeof matchMedia === 'function' ? matchMedia('(max-width: 47.99rem)') : null;
 
 let idioma = idiomaInicial();
 let dados = { estado: { verificado_em: null, linhas: [] }, dias: {}, incidentes: [] };
+// Quem fecha cada dica aberta (Esc em qualquer lugar da página).
+let fechadores = [];
 
 function idiomaInicial() {
   const pedido = new URLSearchParams(location.search).get('lang');
@@ -65,95 +69,136 @@ function desenharTopo() {
   document.title = `${t('titulo')} · ${t('marca')}`;
   $('marca').textContent = t('marca');
   $('titulo').textContent = t('titulo');
-  const botao = $('idioma');
-  const outro = idioma === 'pt-BR' ? 'es-PY' : 'pt-BR';
-  botao.textContent = t('idioma.trocar');
-  botao.lang = outro;
-  botao.setAttribute('aria-label', t('idioma.rotulo'));
-  botao.hidden = false;
+  // D19: o seletor do login, PT-BR e ES-PY, com a opção ativa em aria-pressed.
+  // O rótulo visível vai em maiúsculas pelo CSS (e fica fora da árvore); o nome do grupo vem do catálogo, sem
+  // caixa alta, para o leitor de tela não ler «IDIOMA».
+  $('idioma-rotulo').textContent = t('idioma.rotulo');
+  $('idioma').setAttribute('aria-label', t('idioma.rotulo'));
+  for (const [id, codigo, chave] of [
+    ['idioma-pt', 'pt-BR', 'idioma.pt'],
+    ['idioma-es', 'es-PY', 'idioma.es'],
+  ]) {
+    const botao = $(id);
+    botao.textContent = t(chave);
+    botao.setAttribute('aria-pressed', String(codigo === idioma));
+  }
+  $('idioma').hidden = false;
 
   const aviso = $('aviso');
   aviso.hidden = dados.estado.exemplo !== true;
-  aviso.textContent = aviso.hidden ? '' : t('exemplo.aviso');
+  $('aviso-texto').textContent = aviso.hidden ? '' : t('exemplo.aviso');
 }
 
 function desenharGeral(instante) {
   const estados = estadosDoGeral(dados.estado.linhas);
   const geral = estadoGeral(estados, dados.estado.verificado_em, instante);
   const faixa = $('geral');
+  // A classe escolhe a cor e o ícone (os quatro estão no HTML).
   faixa.className = `geral geral-${geral}`;
-  faixa.textContent = t(`geral.${geral}`);
+  $('geral-texto').textContent = t(`geral.${geral}`);
   faixa.hidden = false;
 }
 
-function desenharBarras(linha, instante, dica) {
+// D19: `quantas` barras (90, ou 30 abaixo de 48rem); o percentual é sempre o dos 90 dias.
+function desenharBarras(linha, instante, dica, quantas) {
   const hoje = diaDeAssuncao(instante);
   const porDia = dados.dias[linha.id] ?? {};
-  const barras = el('div', 'barras');
-  barras.setAttribute('role', 'img');
-  const registros = [];
-  const botoes = [];
   // D11: a linha por fato tem os seus previstos por dia, a sua disponibilidade e a sua cor.
   const porFato = linhaPorFato(linha);
   const intervalo = intervaloDaLinha(linha);
-
+  const registros = [];
   for (let n = DIAS_GUARDADOS - 1; n >= 0; n -= 1) {
+    const registro = porDia[somarDias(hoje, -n)];
+    if (registro) registros.push(registro);
+  }
+  const pct = disponibilidade(registros, { porFato });
+
+  const barras = el('div', 'barras');
+  barras.setAttribute('role', 'group');
+  barras.setAttribute('aria-label', t('barras.resumo', { pct }));
+  const botoes = [];
+  for (let n = quantas - 1; n >= 0; n -= 1) {
     const dia = somarDias(hoje, -n);
     const registro = porDia[dia];
-    if (registro) registros.push(registro);
     const cor = corDoDia({
       registro,
       temDegradado: temIncidenteDegradadoNoDia(dados.incidentes, linha.id, dia, instante),
       esperadas: esperadasNoDia(dia, instante, intervalo),
       porFato,
     });
-    const texto =
-      registro && registro.feitas > 0
-        ? t('barra.dica', {
-            dia: formatarDia(dia),
-            pct: disponibilidade([registro], { porFato }),
-            minutos: registro.minutos_fora,
-          })
-        : t('barra.sem_dado', { dia: formatarDia(dia) });
+    const data = diaCurto(dia, t('barra.data'), t('meses'));
+    const comDado = registro && registro.feitas > 0;
+    const valores = comDado
+      ? { dia: data, pct: disponibilidade([registro], { porFato }), minutos: registro.minutos_fora }
+      : { dia: data };
     const botao = el('button', `barra barra-${cor}`);
     botao.type = 'button';
-    botao.title = texto;
+    // Um único ponto de parada por linha: hoje, até as setas mudarem o dia.
     botao.tabIndex = n === 0 ? 0 : -1;
-    botao.dataset.dica = texto;
+    botao.setAttribute('aria-label', comDado ? t('barra.nome', valores) : t('barra.sem_dado', valores));
+    botao.dataset.dica = comDado ? t('barra.dica', valores) : t('barra.sem_dado', valores);
     botoes.push(botao);
     barras.append(botao);
   }
 
-  const pct = disponibilidade(registros, { porFato });
-  barras.setAttribute('aria-label', t('barras.resumo', { pct }));
-
-  function mostrar(botao) {
-    for (const b of botoes) b.classList.toggle('barra-escolhida', b === botao);
-    dica.textContent = botao.dataset.dica;
+  // A dica: abre ao passar o mouse, ao tocar e ao focar; fecha com Esc, ao sair o mouse (sem foco) e ao sair o foco.
+  let mouseDentro = false;
+  function mostrar(i) {
+    botoes.forEach((b, j) => b.classList.toggle('barra-escolhida', j === i));
+    dica.textContent = botoes[i].dataset.dica;
     dica.hidden = false;
   }
+  function fechar() {
+    for (const b of botoes) b.classList.toggle('barra-escolhida', false);
+    dica.hidden = true;
+  }
+  function escolher(i) {
+    botoes.forEach((b, j) => {
+      b.tabIndex = j === i ? 0 : -1;
+    });
+  }
+  fechadores.push(fechar);
+  barras.addEventListener('mouseover', (evento) => {
+    const i = botoes.indexOf(evento.target);
+    mouseDentro = true;
+    if (i >= 0) mostrar(i);
+  });
+  barras.addEventListener('mouseleave', () => {
+    mouseDentro = false;
+    const foco = botoes.indexOf(document.activeElement);
+    if (foco >= 0) mostrar(foco);
+    else fechar();
+  });
   barras.addEventListener('click', (evento) => {
-    const botao = evento.target.closest('.barra');
-    if (botao) mostrar(botao);
+    const i = botoes.indexOf(evento.target);
+    if (i < 0) return;
+    escolher(i);
+    mostrar(i);
   });
   barras.addEventListener('focusin', (evento) => {
-    if (evento.target.classList.contains('barra')) mostrar(evento.target);
+    const i = botoes.indexOf(evento.target);
+    if (i < 0) return;
+    escolher(i);
+    mostrar(i);
+  });
+  barras.addEventListener('focusout', (evento) => {
+    if (!botoes.includes(evento.relatedTarget) && !mouseDentro) fechar();
   });
   barras.addEventListener('keydown', (evento) => {
-    const atual = botoes.indexOf(document.activeElement);
-    if (atual < 0) return;
-    const destino = { ArrowLeft: atual - 1, ArrowRight: atual + 1, Home: 0, End: botoes.length - 1 }[evento.key];
-    if (destino === undefined || destino < 0 || destino >= botoes.length) return;
+    const destino = diaPelaTecla(botoes.indexOf(document.activeElement), evento.key, botoes.length);
+    if (destino === null) return;
     evento.preventDefault();
-    botoes[atual].tabIndex = -1;
-    botoes[destino].tabIndex = 0;
+    escolher(destino);
     botoes[destino].focus();
   });
   return { barras, pct };
 }
 
 function desenharLinhas(instante) {
-  $('legenda').textContent = t('barras.legenda');
+  const quantas = quantasBarras(ESTREITA?.matches === true);
+  const todas = quantas === DIAS_GUARDADOS;
+  $('legenda').textContent = t(todas ? 'barras.legenda' : 'barras.legenda_30');
+  fechadores = [];
   const lista = $('linhas');
   lista.replaceChildren();
   for (const linha of dados.estado.linhas) {
@@ -173,17 +218,20 @@ function desenharLinhas(instante) {
     const minutos = linhaPorFato(linha) ? minutosDesde(linha.verificado_em, instante) : null;
     if (minutos !== null) cabeca.append(el('span', 'linha-verificado', t('satelite.verificado', { minutos })));
     topo.append(cabeca, el('span', `linha-estado estado-${linha.estado}`, t(`linha.${linha.estado}`)));
+    // A dica repete o nome do dia focado, que o leitor de tela já lê: fica fora da árvore de acessibilidade.
     const dica = el('p', 'dica');
     dica.hidden = true;
-    dica.setAttribute('aria-live', 'polite');
-    const { barras, pct } = desenharBarras(linha, instante, dica);
+    dica.setAttribute('aria-hidden', 'true');
+    const { barras, pct } = desenharBarras(linha, instante, dica, quantas);
     const rodape = el('div', 'linha-rodape');
     rodape.append(
-      el('span', null, t('barras.dias_atras', { n: DIAS_GUARDADOS })),
-      el('span', 'linha-pct', t('barras.disponibilidade', { pct })),
+      el('span', null, t('barras.dias_atras', { n: quantas })),
+      el('span', 'linha-pct', t(todas ? 'barras.disponibilidade' : 'barras.disponibilidade_90', { pct })),
       el('span', null, t('barras.hoje')),
     );
-    item.append(topo, barras, dica, rodape);
+    const base = el('div', 'linha-base');
+    base.append(rodape, dica);
+    item.append(topo, barras, base);
     lista.append(item);
   }
   $('cartao').hidden = false;
@@ -244,13 +292,22 @@ function desenhar() {
   desenharRodape();
 }
 
-$('idioma').addEventListener('click', () => {
-  idioma = idioma === 'pt-BR' ? 'es-PY' : 'pt-BR';
+// A troca de idioma não recarrega: redesenha e atualiza o ?lang=.
+$('idioma').addEventListener('click', (evento) => {
+  const pedido = evento.target?.dataset?.idioma;
+  if (!IDIOMAS.includes(pedido) || pedido === idioma) return;
+  idioma = pedido;
   const url = new URL(location.href);
   url.searchParams.set('lang', idioma);
   history.replaceState(null, '', url);
   desenhar();
 });
+
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape') for (const fechar of fechadores) fechar();
+});
+
+ESTREITA?.addEventListener?.('change', desenhar);
 
 try {
   const [estado, dias, incidentes] = await Promise.all([carregar('estado'), carregar('dias'), carregar('incidentes')]);

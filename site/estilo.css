@@ -1,7 +1,65 @@
-/* D16: a marca usa o laranja e o cinza do Agronomy Center; verde, amarelo, vermelho e o cinza de «sem dados»
-   ficam só para o estado. Um teste (test/contraste.test.mjs) confere o contraste AA dos pares de texto. */
+/* D16 e D19: o visual do Agronomy Center (docs/revisao-visual-2026-11-23.md). A marca usa o laranja e o grafite;
+   verde, amarelo, vermelho e o cinza de «sem dados» ficam só para o estado. Um teste (test/contraste.test.mjs)
+   confere o contraste dos pares de texto e das barras, nos dois temas. */
+
+/* Inter, servida daqui (fontes/LICENSE.txt). Os intervalos são os subconjuntos latin e latin-ext. */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fontes/inter-latin-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fontes/inter-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("fontes/inter-latin-ext-500.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("fontes/inter-latin-500.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fontes/inter-latin-ext-600.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fontes/inter-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   color-scheme: light dark;
+  --fonte-corpo: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Marca */
   --marca-grafite: #41403e;
   --marca-laranja: #d66a2f;
@@ -17,45 +75,58 @@
   --cartao: #ffffff;
   --linha: #e5e4e2;
   --linha-forte: #d8d7d5;
-  /* Faixa de exemplo: igual nos dois temas */
+  /* Faixa de exemplo */
   --aviso-fundo: #faf0df;
   --aviso-borda: #936228;
   --aviso-texto: #201f1d;
-  /* Estado */
-  --verde: #1d6b3a;
-  --amarelo: #7d5800;
-  --vermelho: #b3261e;
-  --cinza: #56605b;
-  --barra-verde: #2f9e5b;
-  --barra-amarela: #e0a810;
-  --barra-vermelha: #d63b33;
-  --barra-cinza: #c9cfcc;
+  /* Estado: o texto */
+  --verde: #15803d;
+  --amarelo: #936228;
+  --vermelho: #c2352a;
+  --cinza: #545351;
+  /* Estado: as barras */
+  --barra-verde: #15803d;
+  --barra-amarela: #936228;
+  --barra-vermelha: #c2352a;
+  --barra-cinza: #c8c7c4;
+  /* Estado: o fundo da faixa geral, com texto branco, igual nos dois temas */
+  --geral-texto: #ffffff;
+  --geral-ok: #15803d;
+  --geral-degradado: #936228;
+  --geral-fora: #c2352a;
+  --geral-atrasado: #545351;
+  /* Medidas */
+  --raio-superficie: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Marca: o laranja que vai em texto ou borda é o claro; o hexágono continua o da marca. */
-    --marca-rotulo: var(--tinta);
-    --acao: #ea874c;
-    --acao-hover: #ea874c;
-    --acao-suave: #2a2e2c;
+    /* Marca: o laranja que vai em texto ou borda é o claro; o símbolo continua o da marca. */
+    --marca-rotulo: #cfcdc9;
+    --acao: #f2a66e;
+    --acao-hover: #f5b184;
+    --acao-suave: #444444;
     /* Neutros */
-    --tinta: #e7ece9;
-    --apoio: #b2b0ae;
-    --discreto: #918f8d;
-    --chao: #111513;
-    --cartao: #1a1f1d;
-    --linha: #2e3532;
-    --linha-forte: #3b4340;
+    --tinta: #e9e7e3;
+    --apoio: #c7c5c1;
+    --discreto: #b3b1ad;
+    --chao: #363636;
+    --cartao: #3f3f3f;
+    --linha: #525252;
+    --linha-forte: #666666;
+    /* Faixa de exemplo */
+    --aviso-fundo: #494237;
+    --aviso-borda: #d3aa6f;
+    --aviso-texto: #e9e7e3;
     /* Estado */
-    --verde: #6fd394;
-    --amarelo: #f2c14e;
-    --vermelho: #ff8a80;
-    --cinza: #a6b0ab;
-    --barra-verde: #3fb36b;
-    --barra-amarela: #e0b030;
-    --barra-vermelha: #ef5b52;
-    --barra-cinza: #3b4340;
+    --verde: #6ec282;
+    --amarelo: #d3aa6f;
+    --vermelho: #ff918e;
+    --cinza: #c7c5c1;
+    --barra-verde: #6ec282;
+    --barra-amarela: #d3aa6f;
+    --barra-vermelha: #ff918e;
+    --barra-cinza: #666666;
   }
 }
 
@@ -73,9 +144,18 @@ body {
   margin: 0;
   background: var(--chao);
   color: var(--tinta);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 1rem;
-  line-height: 1.5;
+  font-family: var(--fonte-corpo);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+/* A casa só serve 400, 500 e 600. */
+h1,
+h2,
+h3,
+strong,
+b {
+  font-weight: 600;
 }
 
 .pagina {
@@ -88,63 +168,94 @@ body {
   display: none !important;
 }
 
-/* Cabeçalho */
+/* Cabeçalho: a marca e o seletor de idioma na primeira linha, o título embaixo. */
 .topo {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "marca idioma"
+    "titulo titulo";
+  align-items: center;
+  gap: 0.75rem 1rem;
   margin-bottom: 1.5rem;
 }
 
-.topo-texto {
-  min-width: 0;
-}
-
-/* O rótulo da marca, em maiúsculas como no logo, com o hexágono laranja (só forma). */
 .marca {
+  grid-area: marca;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
   margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   color: var(--marca-rotulo);
 }
 
-.hexagono {
+.marca-simbolo {
   flex: none;
-  width: 0.875rem;
-  height: 1rem;
-  background: var(--marca-laranja);
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  display: block;
+  width: 32px;
+  height: 32px;
 }
 
 .titulo {
-  margin: 0.25rem 0 0;
-  font-size: 1.5rem;
-  line-height: 1.25;
+  grid-area: titulo;
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
+/* O seletor do login: rótulo, e as duas opções num grupo. */
 .idioma {
-  flex: none;
+  grid-area: idioma;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.idioma-rotulo {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--discreto);
+}
+
+.idioma-opcoes {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  background: var(--chao);
+}
+
+.idioma-opcao {
+  margin: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--apoio);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--acao);
-  background: var(--cartao);
-  border: 1px solid var(--acao);
-  border-radius: 999px;
-  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.45;
   cursor: pointer;
 }
 
-.idioma:hover {
-  color: var(--acao-hover);
-  border-color: var(--acao-hover);
+.idioma-opcao:hover {
+  color: var(--tinta);
+}
+
+.idioma-opcao[aria-pressed="true"] {
   background: var(--acao-suave);
+  color: var(--acao);
+  font-weight: 600;
 }
 
 a {
@@ -155,52 +266,85 @@ a:hover {
   color: var(--acao-hover);
 }
 
+/* O foco de todo controle: anel de 2 px na cor da ação, com 2 px de folga. */
 :focus-visible {
   outline: 2px solid var(--acao);
   outline-offset: 2px;
 }
 
+/* Ícones em linha (só desenho; o texto ao lado diz o que é). */
+.icone {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* Faixas */
 .aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
-  border: 1px dashed var(--aviso-borda);
-  border-radius: 0.5rem;
+  border: 1px solid var(--aviso-borda);
+  border-radius: var(--raio-superficie);
   background: var(--aviso-fundo);
   color: var(--aviso-texto);
-  font-size: 0.9375rem;
+}
+
+.aviso .icone {
+  margin-top: 2px;
+  color: var(--aviso-borda);
 }
 
 .geral {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin: 0 0 1.5rem;
   padding: 1rem 1.25rem;
-  border-radius: 0.5rem;
-  color: #ffffff;
-  font-size: 1.125rem;
+  border-radius: var(--raio-superficie);
+  color: var(--geral-texto);
+  font-size: 1.1875rem;
   font-weight: 600;
+  line-height: 1.3;
+}
+
+.geral .icone {
+  display: none;
 }
 
 .geral-ok {
-  background: #1d6b3a;
+  background: var(--geral-ok);
 }
 
 .geral-degradado {
-  background: #7d5800;
+  background: var(--geral-degradado);
 }
 
 .geral-fora {
-  background: #b3261e;
+  background: var(--geral-fora);
 }
 
 .geral-atrasado {
-  background: #56605b;
+  background: var(--geral-atrasado);
+}
+
+.geral-ok .icone-ok,
+.geral-degradado .icone-degradado,
+.geral-fora .icone-fora,
+.geral-atrasado .icone-atrasado {
+  display: block;
 }
 
 /* Cartão das linhas */
 .cartao {
   background: var(--cartao);
   border: 1px solid var(--linha-forte);
-  border-radius: 0.5rem;
+  border-radius: var(--raio-superficie);
   padding: 0.25rem 1rem;
   margin-bottom: 2rem;
 }
@@ -243,12 +387,13 @@ a:hover {
 }
 
 .linha-nome {
+  font-size: 0.9375rem;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .linha-verificado {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--apoio);
   overflow-wrap: anywhere;
 }
@@ -284,8 +429,11 @@ a:hover {
   margin-bottom: 0;
 }
 
+/* As barras: um único ponto de parada de Tab por linha; as setas mudam o dia. A barra sob o mouse ou escolhida
+   cresce 4 px para cima, sem mudar a cor (clarear faria perder o contraste). */
 .barras {
   display: flex;
+  align-items: flex-end;
   gap: 1px;
   height: 2.25rem;
 }
@@ -293,7 +441,7 @@ a:hover {
 .barra {
   flex: 1 1 0;
   min-width: 0;
-  height: 100%;
+  height: calc(100% - 0.25rem);
   margin: 0;
   padding: 0;
   border: 0;
@@ -306,7 +454,7 @@ a:hover {
 
 .barra:hover,
 .barra-escolhida {
-  opacity: 0.7;
+  height: 100%;
 }
 
 .barra-verde {
@@ -325,16 +473,16 @@ a:hover {
   background: var(--barra-cinza);
 }
 
-.dica {
-  margin: 0.5rem 0 0;
-  font-size: 0.875rem;
+/* Embaixo das barras: «Há N dias · % · Hoje»; a dica do dia aparece por cima, no mesmo lugar. */
+.linha-base {
+  position: relative;
+  margin-top: 0.5rem;
 }
 
 .linha-rodape {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-top: 0.5rem;
   font-size: 0.8125rem;
   color: var(--discreto);
 }
@@ -344,10 +492,25 @@ a:hover {
   white-space: nowrap;
 }
 
+.dica {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 100%;
+  margin: 0;
+  background: var(--cartao);
+  font-size: 0.8125rem;
+  color: var(--tinta);
+}
+
 /* Incidentes */
 .incidentes h2 {
-  font-size: 1.25rem;
   margin: 0 0 1rem;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
 }
 
 .incidentes-nenhum {
@@ -363,18 +526,19 @@ a:hover {
 .incidente {
   background: var(--cartao);
   border: 1px solid var(--linha-forte);
-  border-radius: 0.5rem;
+  border-radius: var(--raio-superficie);
   padding: 1rem;
   margin-bottom: 1rem;
 }
 
 .incidente-aberto {
-  border-left: 4px solid var(--amarelo);
+  border-left: 3px solid var(--amarelo);
 }
 
 .incidente-titulo {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -383,7 +547,7 @@ a:hover {
   flex-wrap: wrap;
   gap: 0.25rem 1rem;
   margin: 0.25rem 0 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--apoio);
 }
 
@@ -415,7 +579,7 @@ a:hover {
   flex-wrap: wrap;
   gap: 0 0.75rem;
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .atualizacao-cabeca time {
@@ -430,7 +594,7 @@ a:hover {
 /* Rodapé */
 .rodape {
   margin-top: 2rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--apoio);
 }
 
@@ -438,17 +602,44 @@ a:hover {
   margin: 0.25rem 0;
 }
 
+/* Abaixo de 48rem: 30 barras (a página troca), alvo de toque de 44 px no seletor e o percentual dos 90 dias numa
+   linha só dele, embaixo de «Há 30 dias» e «Hoje». */
+@media (max-width: 47.99rem) {
+  .idioma-opcao {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .linha-rodape {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.125rem 0.5rem;
+  }
+
+  .linha-pct {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    text-align: left;
+    white-space: normal;
+  }
+}
+
+/* Celular: a marca, o título e o seletor um embaixo do outro; margem lateral de 16 px. */
 @media (max-width: 30rem) {
   .pagina {
-    padding: 1rem 0.75rem 2rem;
+    padding: 1rem 1rem 2rem;
   }
 
   .cartao {
     padding: 0.25rem 0.75rem;
   }
 
-  .titulo {
-    font-size: 1.25rem;
+  .topo {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "marca"
+      "titulo"
+      "idioma";
   }
 
   .barras {
