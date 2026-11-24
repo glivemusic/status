@@ -18,8 +18,7 @@
       "Bash(git commit *)",
       "Bash(ls *)",
       "Bash(wc *)",
-      "Bash(mkdir -p /tmp/status-*)",
-      "Bash(gh api repos/*/git/ref/tags/*)"
+      "Bash(mkdir -p /tmp/status-*)"
     ],
     "deny": [
       "Bash(git push*)",
