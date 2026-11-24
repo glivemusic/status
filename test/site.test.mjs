@@ -6,7 +6,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { TERMOS_PROIBIDOS } from '../lib/vazamento.mjs';
+import { corDoDia, esperadasNoDia, intervaloDaLinha, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
+import { minutosDesde } from '../lib/tempo.mjs';
+import { TERMOS_PROIBIDOS, termoProibido } from '../lib/vazamento.mjs';
+import { linhasVisiveis } from '../lib/visao.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
@@ -57,6 +60,38 @@ test('o exemplo cobre o cenário de D7', () => {
   assert.ok(Object.keys(dias.satelite).length > 0, 'satélite com dados');
 });
 
+test('o exemplo do satélite segue D11: um incidente resolvido, um dia amarelo, nenhum vermelho, verificado há 60 min', () => {
+  const ler = (nome) => JSON.parse(readFileSync(join(RAIZ, 'exemplo', nome), 'utf8'));
+  const estado = ler('estado.json');
+  const dias = ler('dias.json');
+  const { incidentes } = ler('incidentes.json');
+  const linha = config.linhas.find((l) => l.id === 'satelite');
+  const doSatelite = incidentes.filter((i) => i.linhas.includes('satelite'));
+  assert.equal(doSatelite.length, 1);
+  const [i] = doSatelite;
+  assert.equal(i.origem, 'automatico');
+  assert.equal(i.tipo, 'degradado');
+  assert.ok(i.fim !== null, 'resolvido');
+  assert.equal(i.titulo['pt-BR'], TEXTOS['pt-BR']['incidente.satelite.titulo']);
+  assert.equal(i.atualizacoes[0].texto['es-PY'], TEXTOS['es-PY']['incidente.satelite.texto']);
+  const agora = estado.agora;
+  const cores = Object.entries(dias.satelite).map(([dia, registro]) =>
+    corDoDia({
+      registro,
+      temDegradado: temIncidenteDegradadoNoDia(incidentes, 'satelite', dia, agora),
+      esperadas: esperadasNoDia(dia, agora, intervaloDaLinha(linha)),
+      porFato: true,
+    }),
+  );
+  assert.equal(cores.filter((c) => c === 'amarela').length, 1, 'um dia amarelo');
+  assert.ok(!cores.includes('vermelha'), 'nenhum dia vermelho');
+  for (const r of Object.values(dias.satelite)) {
+    assert.ok(r.feitas <= 12, 'no máximo 12 fatos por dia');
+    assert.equal(r.fora, 0);
+  }
+  assert.equal(minutosDesde(estado.linhas.satelite.verificado_em, agora), 60);
+});
+
 test('o site montado não vaza endereço, fornecedor nem dado interno', () => {
   const dir = temporaria();
   node('scripts/montar-site.mjs', '--fonte', 'exemplo', '--saida', dir);
@@ -64,12 +99,46 @@ test('o site montado não vaza endereço, fornecedor nem dado interno', () => {
   for (const t of ['develop', 'vercel', 'workers.dev', 'supabase', 'cloudflare', 'http://', 'https://']) {
     assert.ok(proibidos.includes(t), `a lista tem ${t}`);
   }
+  // D11: o provedor das imagens de satélite.
+  for (const t of ['copernic', 'cdse']) assert.ok(proibidos.includes(t), `a lista tem ${t}`);
   for (const l of config.linhas) if (l.url) proibidos.push(l.url);
   const lista = arquivos(dir);
   assert.ok(lista.length >= 8);
+  let temSentinel2 = false;
   for (const arquivo of lista) {
-    const texto = readFileSync(arquivo, 'utf8').toLowerCase();
+    const original = readFileSync(arquivo, 'utf8');
+    const texto = original.toLowerCase();
     for (const p of proibidos) assert.ok(!texto.includes(p.toLowerCase()), `${arquivo} contém «${p}»`);
+    // PU e cota (palavra inteira), pela mesma função que o montar-site usa.
+    assert.equal(termoProibido(original), null, arquivo);
+    temSentinel2 ||= original.includes('Sentinel-2');
+  }
+  assert.ok(temSentinel2, '«Sentinel-2» (o nome da linha) é permitido e está publicado');
+});
+
+test('D11: a lista de vazamento pega PU, cota e o provedor, sem falso positivo', () => {
+  for (const texto of ['PU', '120 PU', '10PU', 'PUs', 'PUS', 'Pus', 'pu.', 'cota', 'Cotas do mês', 'cuota', 'CDSE']) {
+    assert.notEqual(termoProibido(texto), null, texto);
+  }
+  // Fullwidth e compatibilidade (NFKC).
+  for (const texto of ['ＰＵ', 'ｃｏｔａ', 'ＣＤＳＥ']) assert.notEqual(termoProibido(texto), null, texto);
+  for (const texto of ['pueden', 'puede', 'computador', 'cotação', 'acotado', 'Sentinel-2', 'push', 'pus', 'eu pus', 'pulso']) {
+    assert.equal(termoProibido(texto), null, texto);
+  }
+});
+
+test('D11: «Sentinel Hub» com qualquer separador e «Copernicus» em qualquer grafia', () => {
+  const separadores = ['', ' ', '  ', '\n', '\t', ' ', ' ', '　', '_', '.', '-', '–', '—', ' - ', ' — '];
+  for (const s of separadores) {
+    for (const texto of [`Sentinel${s}Hub`, `SENTINEL${s}HUB`, `o sentinel${s}hub caiu`]) {
+      assert.equal(termoProibido(texto), 'sentinel hub', JSON.stringify(texto));
+    }
+  }
+  for (const texto of ['Copernicus', 'COPERNICUS', 'Copérnico', 'Copernico', 'copérnico', 'Copérnico', 'ＣＯＰＥＲＮＩＣＵＳ']) {
+    assert.equal(termoProibido(texto), 'copernic', JSON.stringify(texto));
+  }
+  for (const texto of ['Sentinel-2', 'Imágenes satelitales (Sentinel-2)', 'Sentinel 2 no hubo cambios']) {
+    assert.equal(termoProibido(texto), null, texto);
   }
 });
 
@@ -81,10 +150,21 @@ test('o site montado leva só o que a página usa', () => {
   const estado = JSON.parse(readFileSync(join(dir, 'dados', 'estado.json'), 'utf8'));
   assert.deepEqual(Object.keys(estado), ['exemplo', 'agora', 'verificado_em', 'linhas']);
   assert.deepEqual(estado.linhas.map((l) => l.id), ['app', 'login', 'banco', 'satelite']);
-  for (const l of estado.linhas) assert.deepEqual(Object.keys(l), ['id', 'nome', 'estado']);
+  for (const l of estado.linhas.slice(0, 3)) assert.deepEqual(Object.keys(l), ['id', 'nome', 'estado']);
+  // D11: o satélite leva o intervalo (previstos por dia) e o `verificado_em` do último fato, nada mais.
+  const satelite = estado.linhas[3];
+  assert.deepEqual(Object.keys(satelite), ['id', 'nome', 'estado', 'intervalo_s', 'verificado_em']);
+  assert.equal(satelite.intervalo_s, 7200);
+  assert.equal(satelite.verificado_em, '2026-11-23T20:00:00Z');
 });
 
-test('com dados reais, a linha pendente não aparece e não há marca de exemplo', () => {
+test('linha pendente só aparece com dados de exemplo', () => {
+  const comPendente = { linhas: [...config.linhas, { id: 'futura', nome: { 'pt-BR': 'x', 'es-PY': 'y' }, pendente: true }] };
+  assert.ok(linhasVisiveis(comPendente, true).some((l) => l.id === 'futura'));
+  assert.ok(!linhasVisiveis(comPendente, false).some((l) => l.id === 'futura'));
+});
+
+test('com dados reais, não há marca de exemplo; o satélite sem fato vai sem verificado_em', () => {
   const fonte = temporaria();
   const saida = temporaria();
   writeFileSync(
@@ -100,7 +180,13 @@ test('com dados reais, a linha pendente não aparece e não há marca de exemplo
   node('scripts/montar-site.mjs', '--fonte', fonte, '--saida', saida);
   const estado = JSON.parse(readFileSync(join(saida, 'dados', 'estado.json'), 'utf8'));
   assert.deepEqual(Object.keys(estado), ['verificado_em', 'linhas']);
-  assert.deepEqual(estado.linhas.map((l) => [l.id, l.estado]), [['app', 'ok'], ['login', 'sem_dado'], ['banco', 'sem_dado']]);
+  assert.deepEqual(estado.linhas.map((l) => [l.id, l.estado]), [
+    ['app', 'ok'],
+    ['login', 'sem_dado'],
+    ['banco', 'sem_dado'],
+    ['satelite', 'sem_dado'],
+  ]);
+  assert.equal(estado.linhas[3].verificado_em, null);
   const incidentes = JSON.parse(readFileSync(join(saida, 'dados', 'incidentes.json'), 'utf8'));
   assert.deepEqual(incidentes, { incidentes: [] });
 });
@@ -150,6 +236,19 @@ test('o catálogo tem as mesmas chaves nos dois idiomas, sem texto vazio, com os
     'incidente.auto_resolvido', 'exemplo.aviso',
   ];
   for (const chave of doPlano) assert.ok(Object.hasOwn(pt, chave), `falta ${chave}`);
+  // D11, ao pé da letra.
+  assert.equal(pt['satelite.verificado'], 'Verificado há {minutos} min');
+  assert.equal(es['satelite.verificado'], 'Verificado hace {minutos} min');
+  assert.equal(pt['incidente.satelite.titulo'], 'Atraso nas imagens de satélite');
+  assert.equal(es['incidente.satelite.titulo'], 'Demora en las imágenes satelitales');
+  assert.equal(
+    pt['incidente.satelite.texto'],
+    'O provedor das imagens Sentinel-2 não está respondendo. Imagens novas podem demorar; o restante do aplicativo funciona normalmente.',
+  );
+  assert.equal(
+    es['incidente.satelite.texto'],
+    'El proveedor de las imágenes Sentinel-2 no está respondiendo. Las imágenes nuevas pueden demorar; el resto de la aplicación funciona con normalidad.',
+  );
   assert.equal(pt['geral.ok'], 'Todos os sistemas operacionais');
   assert.equal(es['barra.dica'], '{dia}: {pct} en línea · {minutos} min fuera de línea');
 });

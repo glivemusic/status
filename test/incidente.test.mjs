@@ -77,7 +77,6 @@ test('abrir recusa cada entrada inválida, sem gravar nada', () => {
     { ID: '20261123-2104-manual' },
     { LINHAS: '' },
     { LINHAS: 'app, agrodash' },
-    { LINHAS: 'satelite' }, // pendente
     { LINHAS: 'app,app' },
     { TIPO: 'lento' },
     { TIPO: '' },
@@ -223,6 +222,60 @@ function aplicar(troca) {
   for (const [k, v] of Object.entries({ ...ABRIR, ...troca })) entrada[k.toLowerCase()] = v;
   return aplicarAcaoManual({ incidentes: [], entrada, config, instante: '2026-11-23T21:04:00.000Z' });
 }
+
+test('linha pendente não aceita incidente; o satélite (D11) aceita', () => {
+  const comPendente = { linhas: [...config.linhas, { id: 'futura', nome: { 'pt-BR': 'x', 'es-PY': 'y' }, pendente: true }] };
+  const entrada = {};
+  for (const [k, v] of Object.entries({ ...ABRIR, LINHAS: 'futura' })) entrada[k.toLowerCase()] = v;
+  assert.throws(
+    () => aplicarAcaoManual({ incidentes: [], entrada, config: comPendente, instante: '2026-11-23T21:04:00.000Z' }),
+    /Linha desconhecida: "futura"/,
+  );
+  assert.deepEqual(aplicar({ LINHAS: 'satelite', TIPO: 'degradado' })[0].linhas, ['satelite']);
+});
+
+test('D11: abrir «fora» numa linha por fato é recusado, sem gravar nada; «degradado» passa', () => {
+  // Pela lógica, com o config real e com outra linha por fato (a regra vem de `intervalo_s`, não do id).
+  assert.throws(() => aplicar({ LINHAS: 'satelite' }), /A linha satelite não fica fora do ar/);
+  assert.throws(() => aplicar({ LINHAS: 'app, satelite' }), /A linha satelite não fica fora do ar/);
+  const outroFato = { linhas: [...config.linhas, { id: 'outra', nome: { 'pt-BR': 'x', 'es-PY': 'y' }, alvo: 'app', componente: 'outra', intervalo_s: 3600 }] };
+  const entrada = {};
+  for (const [k, v] of Object.entries({ ...ABRIR, LINHAS: 'outra' })) entrada[k.toLowerCase()] = v;
+  assert.throws(
+    () => aplicarAcaoManual({ incidentes: [], entrada, config: outroFato, instante: '2026-11-23T21:04:00.000Z' }),
+    /A linha outra não fica fora do ar/,
+  );
+  assert.equal(aplicar({ LINHAS: 'app, satelite', TIPO: 'degradado' })[0].tipo, 'degradado');
+  // Pela CLI: falha com mensagem clara e o arquivo fica igual.
+  const dir = pasta();
+  const antes = readFileSync(join(dir, 'incidentes.json'), 'utf8');
+  const r = rodar(dir, { ...ABRIR, LINHAS: 'satelite' });
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /^Erro: A linha satelite não fica fora do ar: use o tipo degradado/);
+  assert.match(r.stderr, /Nada foi gravado\./);
+  assert.equal(readFileSync(join(dir, 'incidentes.json'), 'utf8'), antes);
+});
+
+test('D11: recusa PU e cota como palavra inteira, sem pegar «pueden», «computador» nem «cotação»', () => {
+  for (const texto of ['Acabou a cota do provedor', 'Sem COTAS', 'Consumo de PU', '10PU no mês', 'Faltan PUs', 'Sin cuota']) {
+    assert.throws(() => aplicar({ TEXTO_PT: texto }), /contém "(PU|PUs|cota|cuota)"/, texto);
+  }
+  for (const texto of [
+    'Las imágenes nuevas pueden demorar.',
+    'Abra no computador.',
+    'A cotação não muda.',
+    'Plazo acotado.',
+    'Imagens de satélite (Sentinel-2)',
+    'Eu pus a correção no ar.',
+  ]) {
+    aplicar({ TEXTO_PT: texto });
+  }
+  for (const texto of ['Falha no Copernicus', 'Falla en Copérnico', 'Erro no CDSE', 'Sentinel Hub fora', 'sentinel-hub', 'Sentinel Hub', 'Sentinel — Hub', 'PUS']) {
+    assert.throws(() => aplicar({ TITULO_ES: texto }), /contém/, texto);
+  }
+  // No texto a quebra de linha é aceita, mas não separa «Sentinel» de «Hub».
+  assert.throws(() => aplicar({ TEXTO_PT: 'Sentinel\nHub' }), /contém "sentinel hub"/);
+});
 
 test('recusa caracteres de controle, de direção e de largura zero; no texto só \\n passa', () => {
   const proibidos = [

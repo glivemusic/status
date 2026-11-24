@@ -1,8 +1,24 @@
 // A página de status. Texto vindo dos JSON entra só por textContent ou atributo.
 import { TEXTOS } from './textos.mjs';
 import { preencher } from './lib/texto.mjs';
-import { dataDeAssuncao, diaDeAssuncao, formatarDia, horaDeAssuncao, emMs, somarDias } from './lib/tempo.mjs';
-import { DIAS_GUARDADOS, corDoDia, disponibilidade, esperadasNoDia, temIncidenteDegradadoNoDia } from './lib/dias.mjs';
+import {
+  dataDeAssuncao,
+  diaDeAssuncao,
+  formatarDia,
+  horaDeAssuncao,
+  emMs,
+  minutosDesde,
+  somarDias,
+} from './lib/tempo.mjs';
+import {
+  DIAS_GUARDADOS,
+  corDoDia,
+  disponibilidade,
+  esperadasNoDia,
+  intervaloDaLinha,
+  linhaPorFato,
+  temIncidenteDegradadoNoDia,
+} from './lib/dias.mjs';
 import { estadoAtual, incidentesRecentes, partesDaDuracao } from './lib/incidentes.mjs';
 import { estadoGeral } from './lib/geral.mjs';
 
@@ -77,6 +93,9 @@ function desenharBarras(linha, instante, dica) {
   barras.setAttribute('role', 'img');
   const registros = [];
   const botoes = [];
+  // D11: a linha por fato tem os seus previstos por dia, a sua disponibilidade e a sua cor.
+  const porFato = linhaPorFato(linha);
+  const intervalo = intervaloDaLinha(linha);
 
   for (let n = DIAS_GUARDADOS - 1; n >= 0; n -= 1) {
     const dia = somarDias(hoje, -n);
@@ -85,11 +104,16 @@ function desenharBarras(linha, instante, dica) {
     const cor = corDoDia({
       registro,
       temDegradado: temIncidenteDegradadoNoDia(dados.incidentes, linha.id, dia, instante),
-      esperadas: esperadasNoDia(dia, instante),
+      esperadas: esperadasNoDia(dia, instante, intervalo),
+      porFato,
     });
     const texto =
       registro && registro.feitas > 0
-        ? t('barra.dica', { dia: formatarDia(dia), pct: disponibilidade([registro]), minutos: registro.minutos_fora })
+        ? t('barra.dica', {
+            dia: formatarDia(dia),
+            pct: disponibilidade([registro], { porFato }),
+            minutos: registro.minutos_fora,
+          })
         : t('barra.sem_dado', { dia: formatarDia(dia) });
     const botao = el('button', `barra barra-${cor}`);
     botao.type = 'button';
@@ -100,7 +124,7 @@ function desenharBarras(linha, instante, dica) {
     barras.append(botao);
   }
 
-  const pct = disponibilidade(registros);
+  const pct = disponibilidade(registros, { porFato });
   barras.setAttribute('aria-label', t('barras.resumo', { pct }));
 
   function mostrar(botao) {
@@ -135,10 +159,12 @@ function desenharLinhas(instante) {
   for (const linha of dados.estado.linhas) {
     const item = el('li', 'linha');
     const topo = el('div', 'linha-topo');
-    topo.append(
-      el('span', 'linha-nome', linha.nome[idioma]),
-      el('span', `linha-estado estado-${linha.estado}`, t(`linha.${linha.estado}`)),
-    );
+    const cabeca = el('div', 'linha-cabeca');
+    cabeca.append(el('span', 'linha-nome', linha.nome[idioma]));
+    // D11: «Verificado há {minutos} min», do último fato; sem fato, não mostra.
+    const minutos = linhaPorFato(linha) ? minutosDesde(linha.verificado_em, instante) : null;
+    if (minutos !== null) cabeca.append(el('span', 'linha-verificado', t('satelite.verificado', { minutos })));
+    topo.append(cabeca, el('span', `linha-estado estado-${linha.estado}`, t(`linha.${linha.estado}`)));
     const dica = el('p', 'dica');
     dica.hidden = true;
     dica.setAttribute('aria-live', 'polite');

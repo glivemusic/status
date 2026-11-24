@@ -21,7 +21,9 @@
     {
       "id": "satelite",
       "nome": { "pt-BR": "Imagens de satélite (Sentinel-2)", "es-PY": "Imágenes satelitales (Sentinel-2)" },
-      "pendente": true
+      "alvo": "app",
+      "componente": "satelite",
+      "intervalo_s": 7200
     }
   ]
 }

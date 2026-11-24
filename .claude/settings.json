@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Grep",
+      "Glob",
+      "Agent",
+      "Bash(node --test*)",
+      "Bash(node scripts/*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(mkdir -p /tmp/status-*)",
+      "Bash(gh api repos/*/git/ref/tags/*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(git reset*)",
+      "Bash(git checkout*)",
+      "Bash(git restore*)",
+      "Bash(git clean*)",
+      "Bash(git rebase*)",
+      "Bash(git branch -D*)",
+      "Bash(rm *)",
+      "Bash(sudo *)",
+      "Bash(curl *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(gh repo *)",
+      "Bash(gh secret *)",
+      "Bash(gh variable *)",
+      "Bash(gh workflow *)",
+      "Bash(gh pr *)",
+      "Bash(gh api -X *)",
+      "Bash(gh api --method *)",
+      "Read(./.env*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.config/gh/**)"
+    ]
+  }
+}

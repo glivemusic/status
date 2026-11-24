@@ -16,7 +16,9 @@ O diff e a raiz da árvore. Sem isso, peça e pare.
 ## Como revisar
 
 1. Leia `CLAUDE.md` e o `docs/plano-pagina-de-status.md` §1.4, §3.4 e §4.3.
-2. **Workflows:**
+2. **Satélite (D11):** a linha nunca vira «fora do ar», conta por `verificado_em` distinto e não muda o estado da
+   linha do app.
+3. **Workflows:**
    - `permissions` mínimas por job (`contents: write` só onde grava o ramo `dados`; `pages: write` e
      `id-token: write` só no deploy);
    - nenhuma entrada de `workflow_dispatch`, nome de ramo ou texto de commit interpolado com `${{ }}` dentro de
@@ -25,12 +27,12 @@ O diff e a raiz da árvore. Sem isso, peça e pare.
    - nenhum `pull_request_target`, nenhum gatilho que rode código de fork com token de escrita;
    - push forçado só no ramo `dados`, nunca no `main`;
    - nenhum `secrets.*` além do `GITHUB_TOKEN`.
-3. **O que se publica:** nenhum endereço interno, nome de fornecedor, mensagem de erro, versão, tempo por
+4. **O que se publica:** nenhum endereço interno, nome de fornecedor, mensagem de erro, versão, tempo por
    componente, contagem ou dado de cliente nos JSON publicados nem na página. Atenção ao `config/alvos.json`: o
    endereço do develop pode existir no repositório, mas não pode ir ao site publicado.
-4. **Entrada do incidente:** validada em lista fechada (`acao`, `linhas`, `tipo`, `estado`), com tamanho máximo nos
+5. **Entrada do incidente:** validada em lista fechada (`acao`, `linhas`, `tipo`, `estado`), com tamanho máximo nos
    textos e `id` validado por formato.
-5. **Página:** texto que vem dos JSON entra por `textContent`/atributo, nunca por `innerHTML`; CSP em `<meta>`
+6. **Página:** texto que vem dos JSON entra por `textContent`/atributo, nunca por `innerHTML`; CSP em `<meta>`
    com `script-src 'self'`; nenhum recurso de fora; `?lang=` aceita só a lista fechada.
 
 ## Formato da resposta

@@ -81,7 +81,7 @@ function falso(respostas, duracoes = []) {
 
 test('nova tentativa que salva: a primeira falha, a segunda vale', async () => {
   const f = falso([new Error('rede'), { status: 200, corpo: corpo({ servidor: 'ok', login: 'ok', banco: 'ok' }) }]);
-  const r = await checarAlvo(app, dependentes, f);
+  const { resultados: r } = await checarAlvo(app, dependentes, f);
   assert.deepEqual(r, { app: 'ok', login: 'ok', banco: 'ok' });
   assert.equal(f.chamadas.length, 2);
   assert.deepEqual(f.esperas, [20_000]);
@@ -91,7 +91,7 @@ test('nova tentativa que salva: a primeira falha, a segunda vale', async () => {
 
 test('nova tentativa que confirma a falha', async () => {
   const f = falso([{ status: 500, corpo: '' }, new Error('rede')]);
-  const r = await checarAlvo(app, dependentes, f);
+  const { resultados: r } = await checarAlvo(app, dependentes, f);
   assert.deepEqual(r, { app: 'fora', login: 'sem_dado', banco: 'sem_dado' });
   assert.equal(f.chamadas.length, 2);
 });
@@ -101,14 +101,14 @@ test('componente fora também pede a nova tentativa', async () => {
     { status: 503, corpo: corpo({ servidor: 'ok', login: 'fora', banco: 'ok' }, 'fora') },
     { status: 503, corpo: corpo({ servidor: 'ok', login: 'fora', banco: 'ok' }, 'fora') },
   ]);
-  const r = await checarAlvo(app, dependentes, f);
+  const { resultados: r } = await checarAlvo(app, dependentes, f);
   assert.equal(r.login, 'fora');
   assert.equal(f.chamadas.length, 2);
 });
 
 test('sem fora, não há nova tentativa; a lentidão vem do relógio', async () => {
   const f = falso([{ status: 200, corpo: corpo({ servidor: 'ok', login: 'ok', banco: 'ok' }) }], [6000]);
-  const r = await checarAlvo(app, dependentes, f);
+  const { resultados: r } = await checarAlvo(app, dependentes, f);
   assert.equal(r.app, 'degradado');
   assert.equal(f.chamadas.length, 1);
   assert.deepEqual(f.esperas, []);

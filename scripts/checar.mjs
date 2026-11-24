@@ -1,5 +1,6 @@
 // Uma checagem: node scripts/checar.mjs --dados <dir> --config config/alvos.json
 // Lê estado.json, dias.json e incidentes.json de <dir>, roda a lógica de lib/ e grava de volta.
+// A linha do satélite (D11) vem do mesmo corpo do app e só conta quando o fato é novo.
 // Escreve publicar=true|false em $GITHUB_OUTPUT, quando existir.
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -42,7 +43,10 @@ gravarJson(arquivo('estado.json'), saida.estado);
 gravarJson(arquivo('dias.json'), saida.dias);
 gravarJson(arquivo('incidentes.json'), { incidentes: saida.incidentes });
 
-// O log do Actions é público: só o id da linha e o estado.
-for (const [linha, resultado] of Object.entries(saida.resultados)) console.log(`${linha}: ${resultado}`);
+// O log do Actions é público: só o id da linha e o estado (e, na linha por fato, se a leitura não contou).
+for (const [linha, resultado] of Object.entries(saida.resultados)) {
+  const repetida = saida.repetidas.includes(linha) ? ' (não contou: fato repetido ou sem dado)' : '';
+  console.log(`${linha}: ${resultado}${repetida}`);
+}
 console.log(`publicar=${saida.publicar}`);
 if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `publicar=${saida.publicar}\n`);

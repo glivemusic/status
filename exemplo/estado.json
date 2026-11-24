@@ -32,9 +32,10 @@
       "estado": "ok",
       "fora_seguidas": 0,
       "degradadas_seguidas": 0,
-      "boas_seguidas": 612,
-      "serie_inicio": "2026-11-21T18:02:00Z",
-      "incidente": null
+      "boas_seguidas": 147,
+      "serie_inicio": "2026-11-10T16:00:00Z",
+      "incidente": null,
+      "verificado_em": "2026-11-23T20:00:00Z"
     }
   }
 }

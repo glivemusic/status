@@ -188,8 +188,20 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.linha-cabeca {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .linha-nome {
   font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.linha-verificado {
+  font-size: 0.875rem;
+  color: var(--suave);
   overflow-wrap: anywhere;
 }
 

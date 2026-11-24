@@ -146,41 +146,33 @@
       ]
     },
     {
-      "id": "20261110-1230-manual",
+      "id": "20261110-1200-satelite",
       "linhas": [
         "satelite"
       ],
       "tipo": "degradado",
-      "inicio": "2026-11-10T12:30:00Z",
-      "fim": "2026-11-10T15:45:00Z",
-      "origem": "manual",
+      "inicio": "2026-11-10T12:00:00Z",
+      "fim": "2026-11-10T16:00:00Z",
+      "origem": "automatico",
       "titulo": {
-        "pt-BR": "Atraso na chegada de imagens novas",
-        "es-PY": "Retraso en la llegada de imágenes nuevas"
+        "pt-BR": "Atraso nas imagens de satélite",
+        "es-PY": "Demora en las imágenes satelitales"
       },
       "atualizacoes": [
         {
-          "em": "2026-11-10T12:30:00Z",
+          "em": "2026-11-10T14:02:00Z",
           "estado": "investigando",
           "texto": {
-            "pt-BR": "As imagens de satélite novas estão chegando com atraso. Estamos investigando.",
-            "es-PY": "Las imágenes satelitales nuevas están llegando con retraso. Estamos investigando."
+            "pt-BR": "O provedor das imagens Sentinel-2 não está respondendo. Imagens novas podem demorar; o restante do aplicativo funciona normalmente.",
+            "es-PY": "El proveedor de las imágenes Sentinel-2 no está respondiendo. Las imágenes nuevas pueden demorar; el resto de la aplicación funciona con normalidad."
           }
         },
         {
-          "em": "2026-11-10T13:10:00Z",
-          "estado": "identificado",
-          "texto": {
-            "pt-BR": "O atraso vem da fila de processamento das imagens; a correção está em andamento.",
-            "es-PY": "El retraso viene de la cola de procesamiento de las imágenes; la corrección está en curso."
-          }
-        },
-        {
-          "em": "2026-11-10T15:45:00Z",
+          "em": "2026-11-10T16:02:00Z",
           "estado": "resolvido",
           "texto": {
-            "pt-BR": "As imagens voltaram a chegar no prazo normal.",
-            "es-PY": "Las imágenes volvieron a llegar en el plazo normal."
+            "pt-BR": "O serviço voltou ao normal às 13:00.",
+            "es-PY": "El servicio volvió a la normalidad a las 13:00."
           }
         }
       ]

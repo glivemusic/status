@@ -1,4 +1,4 @@
-// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4 e as chaves da sessão principal).
+// O catálogo de textos da página, nos dois idiomas (plano §4.2, D4, D11 e as chaves da sessão principal).
 // Sem import: os scripts também leem este arquivo.
 
 export const TEXTOS = {
@@ -33,6 +33,10 @@ export const TEXTOS = {
     'incidente.auto_titulo_fora': 'Interrupção em {linha}',
     'incidente.auto_titulo_degradado': 'Instabilidade em {linha}',
     'incidente.auto_resolvido': 'O serviço voltou ao normal às {hora}.',
+    'incidente.satelite.titulo': 'Atraso nas imagens de satélite',
+    'incidente.satelite.texto':
+      'O provedor das imagens Sentinel-2 não está respondendo. Imagens novas podem demorar; o restante do aplicativo funciona normalmente.',
+    'satelite.verificado': 'Verificado há {minutos} min',
     'incidente.tipo_fora': 'Fora do ar',
     'incidente.tipo_degradado': 'Instabilidade',
     'incidente.duracao': 'Duração: {duracao}',
@@ -73,6 +77,10 @@ export const TEXTOS = {
     'incidente.auto_titulo_fora': 'Interrupción en {linha}',
     'incidente.auto_titulo_degradado': 'Inestabilidad en {linha}',
     'incidente.auto_resolvido': 'El servicio volvió a la normalidad a las {hora}.',
+    'incidente.satelite.titulo': 'Demora en las imágenes satelitales',
+    'incidente.satelite.texto':
+      'El proveedor de las imágenes Sentinel-2 no está respondiendo. Las imágenes nuevas pueden demorar; el resto de la aplicación funciona con normalidad.',
+    'satelite.verificado': 'Verificado hace {minutos} min',
     'incidente.tipo_fora': 'Fuera de línea',
     'incidente.tipo_degradado': 'Inestabilidad',
     'incidente.duracao': 'Duración: {duracao}',
