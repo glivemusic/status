@@ -1,7 +1,7 @@
 // D22: o símbolo oficial do Agronomy Center, recortado do logo do app sem redesenho. Os dois SVG do site têm os
 // mesmos `d`, a mesma transformação e as mesmas cores do grupo do arquivo oficial; o escuro só não tem o fio branco.
-// A lista de `d` esperada foi copiada do grupo do símbolo de basefertilapp/static/marca/agronomy-center.svg e
-// conferida contra ele em 24/11/2026; o teste não lê o basefertilapp.
+// A lista de `d` esperada foi copiada do grupo do símbolo do arquivo de marca do app e
+// conferida contra ele em 24/11/2026; o teste não lê o repositório do app.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';

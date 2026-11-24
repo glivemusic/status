@@ -21,6 +21,9 @@ O plano inteiro está em `docs/plano-pagina-de-status.md` (do API Agronomy); as 
 - **Não mexer** no `basefertilapp` nem no `agrodash` (as rotas de saúde são dos agentes deles), em DNS,
   na produção do app ou em cobrança.
 - Issues, wiki e projects ficam desligados.
+- **Sem nome de pessoa e sem caminho ou endereço interno** em nada que entre no repositório (regra do coordenador,
+  24/11/2026): cite «o app», «o arquivo de marca do app», «o guia de design do app». O que já foi publicado fica;
+  nada de reescrever o histórico.
 
 ## Mapa
 

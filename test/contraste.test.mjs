@@ -91,7 +91,7 @@ test('contraste (>= 3:1) de cada cor de barra de estado, do ícone do aviso e do
 });
 
 test('D21: o cinza de «sem dados» passa de 3:1 no cartão, é o mais discreto da escala da casa que passa e não se confunde com o estado', (t) => {
-  // A escala de cinzas da casa (basefertilapp/docs/design.md), do cartão claro para o escuro, e a do tema escuro.
+  // A escala de cinzas da casa (o guia de design do app), do cartão claro para o escuro, e a do tema escuro.
   const ESCALA = ['#ffffff', '#f7f6f5', '#f2f1f0', '#f5f4f2', '#ebeae8', '#e5e4e2', '#dfdedc', '#d8d7d5', '#c8c7c4', '#b2b0ae', '#8d8b89', '#696865', '#545351', '#41403e', '#302f2d', '#201f1d', '#151413'];
   const ESCALA_ESCURA = ['#303030', '#363636', '#3f3f3f', '#424242', '#444444', '#525252', '#666666', '#9f9f9f', '#b3b1ad', '#c7c5c1', '#e9e7e3'];
   const cinzas = [...new Set([...ESCALA, ...ESCALA_ESCURA])];
