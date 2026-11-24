@@ -41,6 +41,13 @@ A esteira: o `implementer` escreve; o `revisor`, o `seguranca` e o `qa` conferem
 decide o destino de cada achado e devolve ao `implementer`. O `seguranca` é obrigatório em toda mudança de
 workflow, de dado publicado ou de código da página.
 
+### Develop sempre libera (regra do dono, 24/11/2026)
+
+Palavra do dono: «no develop sempre libera». Nos projetos com develop, merge, deploy e migration de develop não
+esperam aprovação, só as condições da esteira. Este repositório não tem develop: o `main` publica a página pública
+(é produção). Aqui, push no `main` segue as ordens do coordenador e as condições da esteira (CI verde, revisor e
+seguranca sem bloqueio, qa onde a tela mudou).
+
 ### Testes: só os da mudança (regra do dono, 23/11/2026)
 
 Palavra do dono: «NÃO CARA SUITE INTEIRA NÃO PELO AMOR DE DEUS É SÓ AS ALTERAÇOES».

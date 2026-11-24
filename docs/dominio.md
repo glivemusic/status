@@ -13,6 +13,10 @@ Este repositório não mexe em DNS: o que for DNS é do dono ou da sessão de fo
 
 ## O risco do domínio sem dono
 
+> **Feito em 24/11/2026:** o domínio `basefertil.com` está verificado na conta `glivemusic` (Settings → Pages:
+> «basefertil.com Verified»). O TXT `_github-pages-challenge-glivemusic.basefertil.com` foi criado pelo dono na
+> Hostinger e responde no DNS público. Nenhuma outra conta pode usar `basefertil.com` nem `status.basefertil.com`.
+
 Enquanto o registro acima aponta para o GitHub Pages e `status.basefertil.com` não está gravado neste Pages, outra
 conta do GitHub pode gravar esse domínio no Pages dela e servir a sua página no nosso endereço. Por isso:
 
