@@ -1,4 +1,5 @@
-// D17: no ar com dado real da produção, só no aplicativo. O modo página, as linhas em breve e o config.
+// D17: o modo página e as linhas em breve ficam no código (podem voltar): testados com um config derivado do real.
+// D24: o config real, com a produção na rota de saúde.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -6,25 +7,39 @@ import { test } from 'node:test';
 import { ESPERA_NOVA_TENTATIVA_MS, chamarPagina, checarAlvo, classificarPagina, modoDoAlvo } from '../lib/classificar.mjs';
 import { executarChecagem } from '../lib/checagem.mjs';
 import { estadoGeral, estadosDoGeral } from '../lib/geral.mjs';
+import { visaoDoEstado, visaoDosDias } from '../lib/visao.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
-const config = JSON.parse(readFileSync(new URL('../config/alvos.json', import.meta.url), 'utf8'));
+const real = JSON.parse(readFileSync(new URL('../config/alvos.json', import.meta.url), 'utf8'));
+// O config da D17, derivado do real: o app no modo página na raiz do site; login, banco e satélite em breve.
+const config = {
+  linhas: real.linhas.map(({ fora_do_geral: _foraDoGeral, ...l }) =>
+    l.url ? { ...l, url: 'https://basefertil.com/', modo: 'pagina' } : { ...l, em_breve: true },
+  ),
+};
 const app = config.linhas.find((l) => l.id === 'app');
 const dependentes = config.linhas.filter((l) => l.alvo === 'app');
 
-test('o config: o app checa a produção no modo página; login, banco e satélite em breve; nada do develop', () => {
-  assert.equal(app.url, 'https://basefertil.com/');
-  assert.equal(app.modo, 'pagina');
+test('D24: o config real: a rota de saúde da produção, nenhuma linha em breve, só o satélite fora do geral, nada do develop', () => {
+  const doApp = real.linhas.find((l) => l.id === 'app');
+  assert.equal(doApp.url, 'https://basefertil.com/api/health');
+  assert.equal(doApp.modo, undefined);
+  assert.equal(modoDoAlvo(doApp), 'saude');
+  assert.equal(doApp.componente, 'servidor');
+  assert.deepEqual(real.linhas.map((l) => l.id), ['app', 'login', 'banco', 'satelite']);
+  assert.ok(real.linhas.every((l) => !('em_breve' in l)), 'nenhuma linha em breve');
+  assert.deepEqual(
+    real.linhas.filter((l) => 'fora_do_geral' in l).map((l) => [l.id, l.fora_do_geral]),
+    [['satelite', true]],
+  );
   for (const id of ['login', 'banco', 'satelite']) {
-    const l = config.linhas.find((x) => x.id === id);
-    assert.equal(l.em_breve, true, id);
-    // Guardam o que precisam para voltar.
+    const l = real.linhas.find((x) => x.id === id);
     assert.equal(l.alvo, 'app', id);
     assert.equal(l.componente, id, id);
   }
-  assert.equal(config.linhas.find((l) => l.id === 'satelite').intervalo_s, 7200);
-  assert.ok(!JSON.stringify(config).includes('develop'));
-  assert.equal(config.linhas.filter((l) => l.url).length, 1, 'um alvo só');
+  assert.equal(real.linhas.find((l) => l.id === 'satelite').intervalo_s, 7200);
+  assert.ok(!JSON.stringify(real).includes('develop'));
+  assert.equal(real.linhas.filter((l) => l.url).length, 1, 'um alvo só');
 });
 
 test('modo: sem modo é saúde; página e saúde valem; outro é erro de config', () => {
@@ -163,7 +178,7 @@ test('com o fetch de verdade, num servidor local: 303 sem seguir, sem cookie, co
   }
 });
 
-// A checagem inteira com o config real: o app no modo página, as em breve de fora.
+// A checagem inteira com o config da D17: o app no modo página, as em breve de fora.
 async function rodar(statuses, dados = {}) {
   let { estado = {}, dias = {}, incidentes = [] } = dados;
   const chamadas = [];
@@ -225,4 +240,105 @@ test('o geral: as linhas em breve não entram', () => {
   assert.equal(estadoGeral(estadosDoGeral(linhas('fora')), agora, agora), 'fora');
   // Sem a marca (os dados de exemplo), todas entram, como antes.
   assert.deepEqual(estadosDoGeral([{ estado: 'ok' }, { estado: 'degradado' }]), ['ok', 'degradado']);
+});
+
+// D24: uma checagem com o config real (a rota de saúde) e o corpo do contrato. O que a página mostraria: o estado
+// de cada linha e o geral, pela visão (`visaoDoEstado` + `estadosDoGeral` + `estadoGeral`).
+const AGORA_D24 = Date.parse('2026-11-25T15:02:00Z');
+function contrato({ estado = 'ok', banco = 'ok' } = {}) {
+  return {
+    sistema: 'agronomy-center',
+    estado,
+    verificado_em: '2026-11-25T15:01:59Z',
+    componentes: { servidor: 'ok', login: 'ok', banco, satelite: 'ok' },
+    satelite: { verificado_em: '2026-11-25T14:00:00Z', idade_s: 3719 },
+  };
+}
+async function checarNaRota(status, corpo) {
+  const chamadas = [];
+  const s = await executarChecagem({
+    config: real,
+    estado: {},
+    dias: {},
+    incidentes: [],
+    fetch: async (url, opcoes) => {
+      chamadas.push({ url, opcoes });
+      return { status, text: async () => JSON.stringify(corpo) };
+    },
+    relogio: () => AGORA_D24,
+    esperar: async () => {},
+    textos: TEXTOS,
+  });
+  const visao = visaoDoEstado(real, s.estado);
+  return {
+    ...s,
+    chamadas,
+    linhas: Object.fromEntries(visao.linhas.map((l) => [l.id, l.estado])),
+    geral: estadoGeral(estadosDoGeral(visao.linhas), visao.verificado_em, new Date(AGORA_D24).toISOString()),
+  };
+}
+
+test('D24: o corpo do contrato com tudo ok, pela rota de saúde: as quatro linhas ok e o geral ok', async () => {
+  const r = await checarNaRota(200, contrato());
+  assert.deepEqual(r.chamadas.map((c) => c.url), ['https://basefertil.com/api/health']);
+  assert.equal(r.chamadas[0].opcoes.redirect, undefined, 'o modo saúde lê o corpo, não é o modo página');
+  assert.deepEqual(r.linhas, { app: 'ok', login: 'ok', banco: 'ok', satelite: 'ok' });
+  assert.equal(r.geral, 'ok');
+  assert.equal(r.estado.linhas.satelite.verificado_em, '2026-11-25T14:00:00.000Z', 'o fato do satélite contou');
+  assert.deepEqual(Object.keys(r.dias).sort(), ['app', 'banco', 'login', 'satelite']);
+  assert.deepEqual(r.incidentes, []);
+});
+
+test('D24: os campos do corpo que não podem sair não chegam ao estado.json do ramo nem à visão publicada', async () => {
+  const corpo = {
+    ...contrato(),
+    sistema: 'sistema-SECRETO',
+    versao: 'v9.8.7-SECRETO',
+    mensagem: 'MENSAGEM-SECRETA de erro interno',
+    componentes: { servidor: 'ok', login: 'ok', banco: 'ok', satelite: 'ok', fila_SECRETA: 'ok' },
+    tempos_ms: { servidor: 4321, login: 5432, banco: 6543 },
+    detalhes: { banco: { mensagem: 'MENSAGEM-SECRETA', tempo_ms: 7654 } },
+    satelite: { verificado_em: '2026-11-25T14:00:00Z', idade_s: 3719, provedor: 'PROVEDOR-SECRETO' },
+  };
+  const s = await executarChecagem({
+    config: real,
+    estado: {},
+    dias: {},
+    incidentes: [],
+    fetch: async () => ({ status: 200, text: async () => JSON.stringify(corpo) }),
+    relogio: () => AGORA_D24,
+    esperar: async () => {},
+    textos: TEXTOS,
+  });
+  const visao = visaoDoEstado(real, s.estado);
+  const textos = {
+    'estado.json do ramo': JSON.stringify(s.estado),
+    'dias.json do ramo': JSON.stringify(s.dias),
+    'visão do estado': JSON.stringify(visao),
+    'visão dos dias': JSON.stringify(visaoDosDias(real, s.dias, false)),
+  };
+  for (const [onde, texto] of Object.entries(textos)) {
+    for (const proibido of ['SECRET', 'versao', 'mensagem', 'tempo', 'fila', 'sistema', 'idade_s', '3719', '4321', '5432', '6543', '7654', 'provedor', '15:01:59']) {
+      assert.ok(!texto.includes(proibido), `${onde} contém «${proibido}»`);
+    }
+  }
+  // Só os estados das linhas e, do satélite, o `verificado_em` do fato.
+  assert.deepEqual(Object.keys(s.estado.linhas), ['app', 'login', 'banco', 'satelite']);
+  assert.equal(s.estado.linhas.satelite.verificado_em, '2026-11-25T14:00:00.000Z');
+  assert.deepEqual(visao.linhas.map((l) => Object.keys(l)), [
+    ['id', 'nome', 'estado'],
+    ['id', 'nome', 'estado'],
+    ['id', 'nome', 'estado'],
+    ['id', 'nome', 'estado', 'intervalo_s', 'verificado_em', 'fora_do_geral'],
+  ]);
+  assert.deepEqual(visao.linhas.map((l) => l.estado), ['ok', 'ok', 'ok', 'ok']);
+  assert.equal(visao.linhas[3].verificado_em, '2026-11-25T14:00:00.000Z');
+});
+
+test('D24: banco fora com 503 e o corpo do contrato: a linha banco fora e o geral fora; o app e o satélite seguem ok', async () => {
+  const r = await checarNaRota(503, contrato({ estado: 'fora', banco: 'fora' }));
+  assert.equal(r.chamadas.length, 2, 'a nova tentativa de D3');
+  assert.deepEqual(r.linhas, { app: 'ok', login: 'ok', banco: 'fora', satelite: 'ok' });
+  assert.equal(r.geral, 'fora');
+  assert.equal(r.estado.linhas.banco.fora_seguidas, 1);
 });

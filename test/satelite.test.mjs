@@ -5,26 +5,32 @@ import { test } from 'node:test';
 import { classificar } from '../lib/classificar.mjs';
 import { executarChecagem } from '../lib/checagem.mjs';
 import { corDoDia, disponibilidade, esperadasNoDia } from '../lib/dias.mjs';
-import { estadoGeral } from '../lib/geral.mjs';
+import { estadoGeral, estadosDoGeral } from '../lib/geral.mjs';
 import { minutosDesde } from '../lib/tempo.mjs';
+import { visaoDoEstado } from '../lib/visao.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
-const real = JSON.parse(readFileSync(new URL('../config/alvos.json', import.meta.url), 'utf8'));
-// D17: hoje o satélite está em breve e o app checa a página. As regras de D11 valem para quando a rota de saúde
-// chegar: os testes usam o config real com o app no modo saúde e sem `em_breve`.
-const config = {
-  linhas: real.linhas.map(({ em_breve: _emBreve, modo: _modo, ...l }) =>
-    l.url ? { ...l, url: 'https://exemplo.invalid/api/health' } : l,
-  ),
-};
+// D24: o config real, com o app na rota de saúde (o `fetch` é falso: nada chama a rede).
+const config = JSON.parse(readFileSync(new URL('../config/alvos.json', import.meta.url), 'utf8'));
 const satelite = config.linhas.find((l) => l.id === 'satelite');
 const app = config.linhas.find((l) => l.id === 'app');
 const dependentes = config.linhas.filter((l) => l.alvo === 'app');
 
-test('o config: o satélite vem do corpo do app, um fato a cada 2 h; hoje, em breve (D17)', () => {
-  const linha = real.linhas.find((l) => l.id === 'satelite');
+// O que a página mostraria: o geral e o estado de cada linha, pela visão (D24: o satélite fora do geral).
+function naPagina(estado) {
+  const visao = visaoDoEstado(config, estado);
+  return {
+    geral: estadoGeral(estadosDoGeral(visao.linhas), visao.verificado_em, visao.verificado_em),
+    linhas: Object.fromEntries(visao.linhas.map((l) => [l.id, l.estado])),
+    satelite: visao.linhas.find((l) => l.id === 'satelite'),
+  };
+}
+
+test('o config: o satélite vem do corpo do app, um fato a cada 2 h, checado e fora do geral (D24)', () => {
+  const linha = satelite;
   assert.equal(linha.pendente, undefined);
-  assert.equal(linha.em_breve, true);
+  assert.equal(linha.em_breve, undefined);
+  assert.equal(linha.fora_do_geral, true);
   assert.equal(linha.alvo, 'app');
   assert.equal(linha.componente, 'satelite');
   assert.equal(linha.intervalo_s, 7200);
@@ -171,7 +177,6 @@ test('D15: verificado_em menor (o cache que volta) não conta, não abre e não 
 });
 
 test('D15: depois de um sem_dado passageiro, a leitura do mesmo fato (ou de um mais velho) volta ao estado do último fato', async () => {
-  const geral = (estado) => estadoGeral(config.linhas.map((l) => estado.linhas[l.id].estado), estado.verificado_em, estado.verificado_em);
   for (const volta of [['degradado', F.b], ['ok', F.a]]) {
     const { estado, dias, incidentes, saidas } = await rodar([['degradado', F.a], ['degradado', F.b], 'rede', volta]);
     assert.equal(saidas[2].estado.linhas.satelite.estado, 'sem_dado', 'o sem_dado passageiro aparece');
@@ -184,7 +189,10 @@ test('D15: depois de um sem_dado passageiro, a leitura do mesmo fato (ou de um m
     assert.equal(linha.incidente, i.id);
     assert.deepEqual(dias.satelite['2026-11-23'], { feitas: 2, ok: 0, degradado: 2, fora: 0, minutos_fora: 0 }, 'nada conta no dia');
     assert.equal(saidas[3].repetidas.includes('satelite'), true);
-    assert.equal(geral(estado), 'degradado');
+    // D24: a página mostra a linha degradada; o geral não muda por ela.
+    const pagina = naPagina(estado);
+    assert.equal(pagina.linhas.satelite, 'degradado');
+    assert.equal(pagina.geral, 'ok');
   }
 });
 
@@ -366,14 +374,40 @@ test('a cor do satélite: amarela com incidente degradado ou sem fato ok, cinza 
   assert.equal(corDoDia({ registro: dia({ feitas: 288, minutos_fora: 30 }) }), 'vermelha');
 });
 
-test('o geral fica degradado com o satélite degradado, e a linha app não muda', async () => {
-  const { estado } = await rodar([['degradado', F.a], ['degradado', F.b], ['degradado', F.c]]);
+test('D24: com o satélite degradado (2 fatos distintos) e as outras ok, o geral continua ok; a linha do satélite fica degradada, com o incidente aberto, e a linha app não muda', async () => {
+  const { estado, incidentes } = await rodar([['degradado', F.a], ['degradado', F.b]]);
   assert.equal(estado.linhas.app.estado, 'ok');
   assert.equal(estado.linhas.app.degradadas_seguidas, 0);
   assert.equal(estado.linhas.app.incidente, null);
-  const estados = config.linhas.map((l) => estado.linhas[l.id].estado);
-  assert.deepEqual(estados, ['ok', 'ok', 'ok', 'degradado']);
-  assert.equal(estadoGeral(estados, estado.verificado_em, estado.verificado_em), 'degradado');
+  const pagina = naPagina(estado);
+  assert.deepEqual(pagina.linhas, { app: 'ok', login: 'ok', banco: 'ok', satelite: 'degradado' });
+  assert.equal(pagina.geral, 'ok');
+  // A linha continua com estado, «Verificado há» e o incidente degradado aberto.
+  assert.equal(pagina.satelite.verificado_em, F.b);
+  const [i] = doSatelite(incidentes);
+  assert.equal(i.tipo, 'degradado');
+  assert.equal(i.fim, null);
+  assert.equal(estado.linhas.satelite.incidente, i.id);
+  // Com outra linha degradada, o geral muda por ela.
+  const comBanco = structuredClone(estado);
+  comBanco.linhas.banco.estado = 'degradado';
+  assert.equal(naPagina(comBanco).geral, 'degradado');
+});
+
+test('D24: o satélite sem dado, ou com idade_s de 18001, não muda o geral; 18000 conta', async () => {
+  const semDado = { sat: 'sem_dado', fato: { verificado_em: null, idade_s: null } };
+  for (const passo of [semDado, { sat: 'degradado', fato: fato(F.a, 18001) }, { sat: 'ok', fato: fato(F.a, 18001) }]) {
+    const { estado, dias } = await rodar([passo]);
+    const pagina = naPagina(estado);
+    assert.equal(pagina.linhas.satelite, 'sem_dado', JSON.stringify(passo));
+    assert.equal(pagina.geral, 'ok', JSON.stringify(passo));
+    assert.equal(dias.satelite, undefined, 'nada conta no dia');
+  }
+  const conta = await rodar([{ sat: 'degradado', fato: fato(F.a, 18000) }]);
+  assert.equal(conta.dias.satelite['2026-11-23'].feitas, 1);
+  const pagina = naPagina(conta.estado);
+  assert.equal(pagina.linhas.satelite, 'degradado');
+  assert.equal(pagina.geral, 'ok');
 });
 
 test('«Verificado há…»: minutos inteiros do último fato; sem fato, nada', () => {

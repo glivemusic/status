@@ -2,7 +2,7 @@
 // site com a fonte `dados` sem nada de exemplo/.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
@@ -33,8 +33,9 @@ function montar(fonte) {
   return saida;
 }
 
-// Dados reais de teste: só o app com dados e nenhum incidente. Para o login e o banco, restos de estado de antes
-// de D17 (o banco também com um dia), que a página não deve mostrar nas linhas em breve nem levar ao geral.
+// Dados reais de teste: o app com dados e nenhum incidente; o login degradado e o banco fora (o banco também com um
+// dia). Só com `montarComLinhasEmBreve` (o config da D17) a página não mostra esses dois nem os leva ao geral; com o
+// config real (D24) eles aparecem e entram no geral.
 const AGORA = '2026-11-23T21:05:00Z';
 function dadosReais() {
   const fonte = temporaria();
@@ -180,8 +181,24 @@ function linhasDesenhadas(pagina) {
   }));
 }
 
-test('com dados reais: sem a faixa de exemplo; as linhas em breve com o nome e «Em breve», sem barras nem percentual', async () => {
-  const site = montar(dadosReais());
+// D17 (o código fica): monta o site numa cópia do repositório com o config da D17 (o app no modo página; login,
+// banco e satélite em breve), derivado do real.
+function montarComLinhasEmBreve(fonte) {
+  const repo = temporaria();
+  for (const pasta of ['scripts', 'lib', 'site', 'config']) cpSync(join(RAIZ, pasta), join(repo, pasta), { recursive: true });
+  const emBreve = {
+    linhas: config.linhas.map(({ fora_do_geral: _foraDoGeral, ...l }) =>
+      l.url ? { ...l, url: 'https://basefertil.com/', modo: 'pagina' } : { ...l, em_breve: true },
+    ),
+  };
+  writeFileSync(join(repo, 'config', 'alvos.json'), JSON.stringify(emBreve));
+  const saida = temporaria();
+  execFileSync(process.execPath, [join(repo, 'scripts', 'montar-site.mjs'), '--fonte', fonte, '--saida', saida], { encoding: 'utf8' });
+  return saida;
+}
+
+test('D17 (o código fica): com linhas em breve, sem a faixa de exemplo; elas com o nome e «Em breve», sem barras nem percentual', async () => {
+  const site = montarComLinhasEmBreve(dadosReais());
   for (const [idioma, rotulo, geral] of [
     ['pt-BR', 'Em breve', 'Todos os sistemas operacionais'],
     ['es-PY', 'Próximamente', 'Todos los sistemas operativos'],
@@ -224,6 +241,72 @@ test('com os dados de exemplo: a página fica como antes de D17 (faixa, as 4 lin
   }
   assert.equal(linhas[3].verificado, 1, 'o «Verificado há» do satélite');
   assert.ok(!linhas.some((l) => l.classe.includes('em_breve')));
+});
+
+// D24: dados reais com o config real: as três linhas da rota ok e o satélite degradado, com o incidente aberto.
+function dadosD24() {
+  const fonte = temporaria();
+  const linha = (estado, extra = {}) => ({ estado, fora_seguidas: 0, degradadas_seguidas: 0, boas_seguidas: 2, serie_inicio: null, incidente: null, ...extra });
+  const dia = { feitas: 250, ok: 250, degradado: 0, fora: 0, minutos_fora: 0 };
+  const texto = { 'pt-BR': 'Teste', 'es-PY': 'Prueba' };
+  writeFileSync(
+    join(fonte, 'estado.json'),
+    JSON.stringify({
+      verificado_em: '2026-11-23T21:02:00Z',
+      publicado_em: '2026-11-23T21:02:00Z',
+      linhas: {
+        app: linha('ok'),
+        login: linha('ok'),
+        banco: linha('ok'),
+        satelite: linha('degradado', { degradadas_seguidas: 2, boas_seguidas: 0, verificado_em: '2026-11-23T20:00:00Z', incidente: '20261123-1800-satelite' }),
+      },
+    }),
+  );
+  writeFileSync(
+    join(fonte, 'dias.json'),
+    JSON.stringify({ app: { '2026-11-23': dia }, login: { '2026-11-23': dia }, banco: { '2026-11-23': dia }, satelite: { '2026-11-23': { feitas: 2, ok: 0, degradado: 2, fora: 0, minutos_fora: 0 } } }),
+  );
+  writeFileSync(
+    join(fonte, 'incidentes.json'),
+    JSON.stringify({
+      incidentes: [
+        {
+          id: '20261123-1800-satelite',
+          linhas: ['satelite'],
+          tipo: 'degradado',
+          inicio: '2026-11-23T18:00:00Z',
+          fim: null,
+          origem: 'automatico',
+          titulo: texto,
+          atualizacoes: [{ em: '2026-11-23T20:02:00Z', estado: 'investigando', texto }],
+        },
+      ],
+    }),
+  );
+  return fonte;
+}
+
+test('D24: com o satélite degradado e as outras ok, o geral fica ok; o satélite com estado, barras, «Verificado há» e o incidente', async () => {
+  const site = montar(dadosD24());
+  for (const [idioma, geral, instavel] of [
+    ['pt-BR', 'Todos os sistemas operacionais', 'Instável'],
+    ['es-PY', 'Todos los sistemas operativos', 'Inestable'],
+  ]) {
+    const p = await desenhar(site, idioma);
+    assert.equal(p.$('aviso').hidden, true, 'sem a faixa de exemplo');
+    assert.equal(p.$('geral').className, 'geral geral-ok');
+    assert.equal(p.$('geral-texto').textContent, geral);
+    const linhas = linhasDesenhadas(p);
+    assert.deepEqual(linhas.map((l) => l.nome), config.linhas.map((l) => l.nome[idioma]));
+    assert.ok(!linhas.some((l) => l.classe.includes('em_breve')), 'nenhuma linha em breve');
+    for (const l of linhas) {
+      assert.equal(l.barras, 90, l.nome);
+      assert.equal(l.rodape, 1, l.nome);
+    }
+    assert.equal(linhas[3].estado, instavel);
+    assert.equal(linhas[3].verificado, 1, 'o «Verificado há» do satélite');
+    assert.equal(p.$('incidentes').todos('incidente-titulo').length, 1, 'o incidente degradado do satélite aparece');
+  }
 });
 
 // D19: o que a página mostra de uma linha com barras.
@@ -646,8 +729,8 @@ test('o site com a fonte dados não leva nada de exemplo/', () => {
     assert.equal(json.exemplo, undefined, `${nome} sem a marca de exemplo`);
     assert.equal(json.agora, undefined, `${nome} sem o «agora» do exemplo`);
   }
-  // Os dias das linhas em breve (o banco tinha um) não vão.
-  assert.deepEqual(Object.keys(JSON.parse(readFileSync(join(site, 'dados', 'dias.json'), 'utf8'))), ['app']);
+  // D24: sem linhas em breve, o dia do banco vai como o do app.
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(join(site, 'dados', 'dias.json'), 'utf8'))), ['app', 'banco']);
 });
 
 test('o CNAME vai com as duas fontes, uma linha só, e nada publicado tem o endereço checado', () => {
@@ -655,7 +738,7 @@ test('o CNAME vai com as duas fontes, uma linha só, e nada publicado tem o ende
     const site = montar(fonte);
     assert.equal(readFileSync(join(site, 'CNAME'), 'utf8'), 'status.basefertil.com\n');
     const urls = config.linhas.map((l) => l.url).filter(Boolean);
-    assert.deepEqual(urls, ['https://basefertil.com/']);
+    assert.deepEqual(urls, ['https://basefertil.com/api/health']);
     for (const arquivo of arquivos(site)) {
       const texto = readFileSync(arquivo, 'utf8');
       // D19: as fontes e a licença delas ficam de fora; dos SVG sai só o espaço de nomes (como no montar-site).

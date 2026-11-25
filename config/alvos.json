@@ -3,23 +3,20 @@
     {
       "id": "app",
       "nome": { "pt-BR": "Agronomy Center: aplicativo", "es-PY": "Agronomy Center: aplicación" },
-      "url": "https://basefertil.com/",
-      "modo": "pagina",
+      "url": "https://basefertil.com/api/health",
       "componente": "servidor"
     },
     {
       "id": "login",
       "nome": { "pt-BR": "Login e contas", "es-PY": "Inicio de sesión y cuentas" },
       "alvo": "app",
-      "componente": "login",
-      "em_breve": true
+      "componente": "login"
     },
     {
       "id": "banco",
       "nome": { "pt-BR": "Dados dos talhões (banco)", "es-PY": "Datos de los lotes (base de datos)" },
       "alvo": "app",
-      "componente": "banco",
-      "em_breve": true
+      "componente": "banco"
     },
     {
       "id": "satelite",
@@ -27,7 +24,7 @@
       "alvo": "app",
       "componente": "satelite",
       "intervalo_s": 7200,
-      "em_breve": true
+      "fora_do_geral": true
     }
   ]
 }
