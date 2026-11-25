@@ -5,6 +5,8 @@ on:
   # Ligado em 23/11/2026 por ordem do coordenador (D17: produção, só o aplicativo).
   schedule:
     # Lista explícita: com '2-59/5' o GitHub rodou 1 vez em 11 h (24/11/2026).
+    # D25: com esta lista, 4 disparos em ~29 h (24–25/11/2026). O schedule é «melhor esforço» e descarta disparos:
+    # é a terceira camada, depois do `encadear` e do job `reserva`, não a reserva principal.
     - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
 
 permissions: {}
@@ -61,12 +63,13 @@ jobs:
 
   # D20: espera o próximo horário (nunca antes de 5 min do início deste run) e dispara a própria checagem, se não
   # houver outro run dela ativo. Roda com a checagem falha, mas não com o run cancelado; o freio é a variável
-  # ENCADEAR=nao e o teto diário vem do checar (`nao`). O schedule fica de reserva.
+  # ENCADEAR=nao e o teto diário vem do checar (`nao`). D25: o disparo tenta de novo no 5xx e no erro de rede (até
+  # 3 vezes, 15 s e 30 s); se o job falhar mesmo assim, a reserva é o job `reserva`, abaixo.
   encadear:
     needs: checar
     if: ${{ !cancelled() && vars.ENCADEAR != 'nao' && needs.checar.outputs.encadear != 'nao' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 9
     permissions:
       actions: write
       contents: read
@@ -82,3 +85,28 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/encadear.mjs
+
+  # D25: a reserva da corrente, dentro do próprio run. Só quando o `encadear` falhou (o disparo esgotou as tentativas,
+  # o gh falhou, a lista de runs veio inválida) ou saiu `cancelled` (o job que estoura o timeout sai assim), com os
+  # mesmos freios; o `!cancelled()` continua barrando o run cancelado por gente. Sem esperar o horário: só completa os
+  # 5 min desde o início do run, confere que não há outro run ativo e dispara, com a mesma nova tentativa.
+  reserva:
+    needs: [checar, encadear]
+    if: ${{ !cancelled() && (needs.encadear.result == 'failure' || needs.encadear.result == 'cancelled') && vars.ENCADEAR != 'nao' && needs.checar.outputs.encadear != 'nao' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Disparar pela reserva
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/encadear.mjs --reserva

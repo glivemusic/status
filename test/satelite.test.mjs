@@ -119,7 +119,7 @@ async function rodar(passos, dados = {}, inicio = INICIO) {
       fetch: async () => {
         if (p === 'rede') throw new Error('rede');
         const texto = Array.isArray(p) ? corpo({ sat: p[0], fato: p[1] === null ? undefined : fato(p[1]) }) : corpo(p);
-        return { status: 200, text: async () => texto };
+        return new Response(texto, { status: 200 });
       },
       relogio: () => agora,
       esperar: async () => {},
