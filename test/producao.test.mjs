@@ -143,7 +143,12 @@ test('as linhas que dependeriam do corpo ficam sem dado no modo página (o saté
     resultados: { app: 'ok', login: 'sem_dado', satelite: 'sem_dado' },
     fatos: { satelite: null },
   });
-  assert.deepEqual(classificarPagina(null, app, []), { resultados: { app: 'fora' }, fatos: {} });
+  // D25: fora leva o motivo, só texto fixo.
+  assert.deepEqual(classificarPagina(null, app, []), { resultados: { app: 'fora' }, fatos: {}, motivo: 'sem resposta' });
+  assert.equal(classificarPagina({ status: 200, duracaoMs: 10_001 }, app, []).motivo, 'sem resposta');
+  assert.equal(classificarPagina({ status: 404, duracaoMs: 100 }, app, []).motivo, 'status inesperado');
+  assert.equal(classificarPagina({ status: 500, duracaoMs: 100 }, app, []).motivo, 'status inesperado');
+  assert.ok(!('motivo' in classificarPagina({ status: 200, duracaoMs: 6000 }, app, [])), 'degradado não é falha');
 });
 
 test('com o fetch de verdade, num servidor local: 303 sem seguir, sem cookie, corpo descartado', async () => {
@@ -263,7 +268,7 @@ async function checarNaRota(status, corpo) {
     incidentes: [],
     fetch: async (url, opcoes) => {
       chamadas.push({ url, opcoes });
-      return { status, text: async () => JSON.stringify(corpo) };
+      return new Response(JSON.stringify(corpo), { status });
     },
     relogio: () => AGORA_D24,
     esperar: async () => {},
@@ -281,7 +286,9 @@ async function checarNaRota(status, corpo) {
 test('D24: o corpo do contrato com tudo ok, pela rota de saúde: as quatro linhas ok e o geral ok', async () => {
   const r = await checarNaRota(200, contrato());
   assert.deepEqual(r.chamadas.map((c) => c.url), ['https://basefertil.com/api/health']);
-  assert.equal(r.chamadas[0].opcoes.redirect, undefined, 'o modo saúde lê o corpo, não é o modo página');
+  // D25: o modo saúde também não segue redirecionamento nem leva credencial.
+  assert.equal(r.chamadas[0].opcoes.redirect, 'manual');
+  assert.equal(r.chamadas[0].opcoes.credentials, 'omit');
   assert.deepEqual(r.linhas, { app: 'ok', login: 'ok', banco: 'ok', satelite: 'ok' });
   assert.equal(r.geral, 'ok');
   assert.equal(r.estado.linhas.satelite.verificado_em, '2026-11-25T14:00:00.000Z', 'o fato do satélite contou');
@@ -305,7 +312,7 @@ test('D24: os campos do corpo que não podem sair não chegam ao estado.json do 
     estado: {},
     dias: {},
     incidentes: [],
-    fetch: async () => ({ status: 200, text: async () => JSON.stringify(corpo) }),
+    fetch: async () => new Response(JSON.stringify(corpo), { status: 200 }),
     relogio: () => AGORA_D24,
     esperar: async () => {},
     textos: TEXTOS,

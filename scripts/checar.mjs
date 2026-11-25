@@ -5,7 +5,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as esperarMs } from 'node:timers/promises';
-import { medirChecagem } from '../lib/checagem.mjs';
+import { arquivoDaMedida, medirChecagem } from '../lib/checagem.mjs';
 
 const { values } = parseArgs({
   options: { medida: { type: 'string' }, config: { type: 'string', default: 'config/alvos.json' } },
@@ -24,8 +24,10 @@ const medida = await medirChecagem({
 });
 
 mkdirSync(dirname(values.medida), { recursive: true });
-writeFileSync(values.medida, `${JSON.stringify(medida, null, 2)}\n`);
+writeFileSync(values.medida, `${JSON.stringify(arquivoDaMedida(medida), null, 2)}\n`);
 
-// O log do Actions é público: só o id da linha e o estado.
+// O log do Actions é público: só o id da linha e o estado e, por alvo que falhou, o motivo (um texto fixo de
+// `MOTIVOS`, D25; nunca corpo, cabeçalho, endereço ou mensagem de erro).
 for (const [linha, resultado] of Object.entries(medida.resultados)) console.log(`${linha}: ${resultado}`);
+for (const [alvo, motivo] of Object.entries(medida.motivos)) console.log(`Motivo de ${alvo}: ${motivo}.`);
 console.log(`Medida de ${medida.instante} gravada.`);

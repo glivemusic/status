@@ -44,7 +44,7 @@ async function rodar(serie, dados = {}) {
       fetch: async () => {
         const r = respostaDe(servidor, login);
         if (!r) throw new Error('rede');
-        return { status: r.status, text: async () => r.corpo };
+        return new Response(r.corpo, { status: r.status });
       },
       relogio: () => agora,
       esperar: async () => {},

@@ -720,12 +720,12 @@ test('os workflows: a checagem no seu grupo sem cancelar, o incidente sem grupo 
   assert.match(checagemYml, /publicar: \$\{\{ steps\.gravar\.outputs\.publicar \}\}/);
   assert.match(checagemYml, /--medida "\$RUNNER_TEMP\/medida\.json"/);
   // D20: o encadear roda até com a checagem falha (não com o run cancelado), para com o freio ou o teto, e só ele
-  // pode disparar run.
+  // pode disparar run; D25: ele e o job `reserva` (conferido em test/encadear.test.mjs), com o timeout de 9 min.
   assert.match(checagemYml, /encadear: \$\{\{ steps\.gravar\.outputs\.encadear \}\}/);
   assert.match(
     checagemYml,
-    /\n  encadear:\n    needs: checar\n    if: \$\{\{ !cancelled\(\) && vars\.ENCADEAR != 'nao' && needs\.checar\.outputs\.encadear != 'nao' \}\}\n    runs-on: ubuntu-latest\n    timeout-minutes: 8\n    permissions:\n      actions: write\n      contents: read\n/,
+    /\n  encadear:\n    needs: checar\n    if: \$\{\{ !cancelled\(\) && vars\.ENCADEAR != 'nao' && needs\.checar\.outputs\.encadear != 'nao' \}\}\n    runs-on: ubuntu-latest\n    timeout-minutes: 9\n    permissions:\n      actions: write\n      contents: read\n/,
   );
-  assert.equal(checagemYml.match(/actions: write/g).length, 1);
+  assert.equal(checagemYml.match(/actions: write/g).length, 2);
   assert.match(checagemYml, /^permissions: \{\}$/m);
 });
