@@ -130,5 +130,8 @@ config; só abrir numa linha em breve é recusado).
 - **`noindex` presente:** o código-fonte da página tem `<meta name="robots" content="noindex">`.
 - **Sem a faixa de exemplo com a fonte `dados`:** a faixa «Dados de exemplo…» / «Datos de ejemplo…» não aparece, e
   `dados/estado.json` publicado não tem o campo `exemplo`.
-- **As linhas em breve:** «Login e contas», «Dados dos talhões (banco)» e «Imagens de satélite (Sentinel-2)»
+- **As linhas em breve (D17):** «Login e contas», «Dados dos talhões (banco)» e «Imagens de satélite (Sentinel-2)»
   aparecem com «Em breve» / «Próximamente», sem barras nem percentual; só a linha do aplicativo tem barras.
+  *(Substituído pela D24.)*
+- **As quatro linhas (D24):** todas com estado e barras; a do satélite com «Verificado há» / «Verificado hace», e o
+  estado dela não muda a faixa geral.

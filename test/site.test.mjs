@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { corDoDia, temIncidenteDegradadoNoDia } from '../lib/dias.mjs';
 import { minutosDesde } from '../lib/tempo.mjs';
 import { TERMOS_PROIBIDOS, termoProibido, textoParaConferir } from '../lib/vazamento.mjs';
-import { linhasVisiveis } from '../lib/visao.mjs';
+import { linhasVisiveis, visaoDoEstado } from '../lib/visao.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
@@ -182,11 +182,13 @@ test('o site montado leva só o que a página usa', () => {
   assert.deepEqual(Object.keys(estado), ['exemplo', 'agora', 'verificado_em', 'linhas']);
   assert.deepEqual(estado.linhas.map((l) => l.id), ['app', 'login', 'banco', 'satelite']);
   for (const l of estado.linhas.slice(0, 3)) assert.deepEqual(Object.keys(l), ['id', 'nome', 'estado']);
-  // D11: o satélite leva o intervalo (previstos por dia) e o `verificado_em` do último fato, nada mais.
+  // D11: o satélite leva o intervalo (previstos por dia) e o `verificado_em` do último fato; D24: a marca de fora do
+  // geral. Nada mais.
   const satelite = estado.linhas[3];
-  assert.deepEqual(Object.keys(satelite), ['id', 'nome', 'estado', 'intervalo_s', 'verificado_em']);
+  assert.deepEqual(Object.keys(satelite), ['id', 'nome', 'estado', 'intervalo_s', 'verificado_em', 'fora_do_geral']);
   assert.equal(satelite.intervalo_s, 7200);
   assert.equal(satelite.verificado_em, '2026-11-23T20:00:00Z');
+  assert.equal(satelite.fora_do_geral, true);
 });
 
 test('linha pendente só aparece com dados de exemplo', () => {
@@ -195,7 +197,7 @@ test('linha pendente só aparece com dados de exemplo', () => {
   assert.ok(!linhasVisiveis(comPendente, false).some((l) => l.id === 'futura'));
 });
 
-test('com dados reais, não há marca de exemplo; as linhas em breve (D17) vão só com o nome e a marca', () => {
+test('D24: com dados reais, não há marca de exemplo; as quatro linhas vão com o estado e só o satélite com fora_do_geral', () => {
   const fonte = temporaria();
   const saida = temporaria();
   writeFileSync(
@@ -211,12 +213,38 @@ test('com dados reais, não há marca de exemplo; as linhas em breve (D17) vão 
   node('scripts/montar-site.mjs', '--fonte', fonte, '--saida', saida);
   const estado = JSON.parse(readFileSync(join(saida, 'dados', 'estado.json'), 'utf8'));
   assert.deepEqual(Object.keys(estado), ['verificado_em', 'linhas']);
-  assert.deepEqual(estado.linhas[0], { id: 'app', nome: config.linhas[0].nome, estado: 'ok' });
-  for (const [n, id] of [[1, 'login'], [2, 'banco'], [3, 'satelite']]) {
-    assert.deepEqual(estado.linhas[n], { id, nome: config.linhas[n].nome, em_breve: true });
-  }
+  assert.deepEqual(estado.linhas, [
+    { id: 'app', nome: config.linhas[0].nome, estado: 'ok' },
+    { id: 'login', nome: config.linhas[1].nome, estado: 'sem_dado' },
+    { id: 'banco', nome: config.linhas[2].nome, estado: 'sem_dado' },
+    { id: 'satelite', nome: config.linhas[3].nome, estado: 'sem_dado', intervalo_s: 7200, verificado_em: null, fora_do_geral: true },
+  ]);
   const incidentes = JSON.parse(readFileSync(join(saida, 'dados', 'incidentes.json'), 'utf8'));
   assert.deepEqual(incidentes, { incidentes: [] });
+});
+
+test('D17 (o código fica): com um config de linhas em breve, a visão real leva só o nome e a marca; a de exemplo, como as outras', () => {
+  const emBreve = { linhas: config.linhas.map((l) => (l.url ? l : { ...l, em_breve: true })) };
+  const estado = { verificado_em: '2026-11-23T21:00:00Z', linhas: { app: { estado: 'ok' }, banco: { estado: 'fora' } } };
+  const visao = visaoDoEstado(emBreve, estado);
+  assert.deepEqual(visao.linhas[0], { id: 'app', nome: config.linhas[0].nome, estado: 'ok' });
+  for (const [n, id] of [[1, 'login'], [2, 'banco'], [3, 'satelite']]) {
+    assert.deepEqual(visao.linhas[n], { id, nome: config.linhas[n].nome, em_breve: true });
+  }
+  const doExemplo = visaoDoEstado(emBreve, { ...estado, exemplo: true, agora: '2026-11-23T21:00:00Z' });
+  assert.ok(doExemplo.linhas.every((l) => !('em_breve' in l)));
+  assert.equal(doExemplo.linhas[2].estado, 'fora');
+});
+
+test('D24: fora_do_geral vai à visão só na linha cujo config o tem, e só como true', () => {
+  const estado = { verificado_em: '2026-11-25T15:00:00Z', linhas: {} };
+  for (const exemplo of [false, true]) {
+    const visao = visaoDoEstado(config, exemplo ? { ...estado, exemplo: true, agora: estado.verificado_em } : estado);
+    assert.deepEqual(visao.linhas.filter((l) => 'fora_do_geral' in l).map((l) => [l.id, l.fora_do_geral]), [['satelite', true]]);
+  }
+  // Outro valor no config não vai.
+  const outro = { linhas: config.linhas.map((l) => (l.id === 'app' ? { ...l, fora_do_geral: 'sim' } : l)) };
+  assert.ok(!('fora_do_geral' in visaoDoEstado(outro, estado).linhas[0]));
 });
 
 test('D19: montar-site recusa, sem publicar nada, arquivo, pasta ou link fora da lista e fonte sem wOF2', () => {

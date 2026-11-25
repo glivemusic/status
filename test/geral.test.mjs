@@ -1,7 +1,7 @@
 // D6: monitoramento atrasado e o estado geral.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { estadoGeral, monitoramentoAtrasado } from '../lib/geral.mjs';
+import { estadoGeral, estadosDoGeral, monitoramentoAtrasado } from '../lib/geral.mjs';
 import { TEXTOS } from '../site/textos.mjs';
 
 const verificado = '2026-11-23T20:00:00Z';
@@ -27,4 +27,20 @@ test('a ordem do geral: atrasado, fora, degradado, ok; sem dado não muda', () =
   assert.equal(estadoGeral(['ok', 'degradado', 'sem_dado'], verificado, cedo), 'degradado');
   assert.equal(estadoGeral(['ok', 'sem_dado'], verificado, cedo), 'ok');
   assert.equal(estadoGeral(['ok', 'ok'], verificado, cedo), 'ok');
+});
+
+test('D24: estadosDoGeral deixa de fora a linha em breve e a linha fora_do_geral, só com o booleano true', () => {
+  const linhas = [
+    { id: 'app', estado: 'ok' },
+    { id: 'login', estado: 'degradado' },
+    { id: 'banco', em_breve: true, estado: 'fora' },
+    { id: 'satelite', estado: 'degradado', fora_do_geral: true },
+  ];
+  assert.deepEqual(estadosDoGeral(linhas), ['ok', 'degradado']);
+  // A marca só vale com true: outro valor não tira a linha do geral.
+  assert.deepEqual(estadosDoGeral([{ estado: 'fora', fora_do_geral: 'sim' }, { estado: 'ok', fora_do_geral: false }]), ['fora', 'ok']);
+  const cedo = '2026-11-23T20:05:00Z';
+  assert.equal(estadoGeral(estadosDoGeral([{ estado: 'ok' }, { estado: 'fora', fora_do_geral: true }]), verificado, cedo), 'ok');
+  assert.equal(estadoGeral(estadosDoGeral([{ estado: 'fora' }, { estado: 'ok', fora_do_geral: true }]), verificado, cedo), 'fora');
+  assert.deepEqual(estadosDoGeral(undefined), []);
 });
