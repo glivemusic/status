@@ -4,7 +4,7 @@
       "estado": "ok",
       "fora_seguidas": 0,
       "degradadas_seguidas": 0,
-      "boas_seguidas": 1007,
+      "boas_seguidas": 1008,
       "serie_inicio": "2026-11-24T01:52:23.086Z",
       "incidente": null
     },
@@ -12,7 +12,7 @@
       "estado": "ok",
       "fora_seguidas": 0,
       "degradadas_seguidas": 0,
-      "boas_seguidas": 697,
+      "boas_seguidas": 698,
       "serie_inicio": "2026-11-25T17:23:18.004Z",
       "incidente": null
     },
@@ -20,7 +20,7 @@
       "estado": "ok",
       "fora_seguidas": 0,
       "degradadas_seguidas": 0,
-      "boas_seguidas": 697,
+      "boas_seguidas": 698,
       "serie_inicio": "2026-11-25T17:23:18.004Z",
       "incidente": null
     },
@@ -28,17 +28,17 @@
       "estado": "ok",
       "fora_seguidas": 0,
       "degradadas_seguidas": 0,
-      "boas_seguidas": 31,
+      "boas_seguidas": 32,
       "serie_inicio": "2026-11-25T17:18:15.000Z",
       "incidente": null,
-      "verificado_em": "2026-11-28T02:12:53.000Z",
+      "verificado_em": "2026-11-28T04:14:03.000Z",
       "estado_do_fato": "ok"
     }
   },
-  "verificado_em": "2026-11-28T04:14:02.550Z",
+  "verificado_em": "2026-11-28T04:19:07.688Z",
   "publicado_em": "2026-11-28T04:08:50.413Z",
   "encadeados": {
     "dia": "2026-11-28",
-    "n": 15
+    "n": 16
   }
 }

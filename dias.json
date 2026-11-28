@@ -36,8 +36,8 @@
       "minutos_fora": 0
     },
     "2026-11-28": {
-      "feitas": 15,
-      "ok": 15,
+      "feitas": 16,
+      "ok": 16,
       "degradado": 0,
       "fora": 0,
       "minutos_fora": 0
@@ -66,8 +66,8 @@
       "minutos_fora": 0
     },
     "2026-11-28": {
-      "feitas": 15,
-      "ok": 15,
+      "feitas": 16,
+      "ok": 16,
       "degradado": 0,
       "fora": 0,
       "minutos_fora": 0
@@ -96,8 +96,8 @@
       "minutos_fora": 0
     },
     "2026-11-28": {
-      "feitas": 15,
-      "ok": 15,
+      "feitas": 16,
+      "ok": 16,
       "degradado": 0,
       "fora": 0,
       "minutos_fora": 0
@@ -121,6 +121,13 @@
     "2026-11-27": {
       "feitas": 12,
       "ok": 12,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-28": {
+      "feitas": 1,
+      "ok": 1,
       "degradado": 0,
       "fora": 0,
       "minutos_fora": 0
