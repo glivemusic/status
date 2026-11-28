@@ -1,0 +1,129 @@
+{
+  "app": {
+    "2026-11-23": {
+      "feitas": 1,
+      "ok": 1,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-24": {
+      "feitas": 159,
+      "ok": 159,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-25": {
+      "feitas": 263,
+      "ok": 263,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-26": {
+      "feitas": 285,
+      "ok": 285,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-27": {
+      "feitas": 284,
+      "ok": 284,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-28": {
+      "feitas": 1,
+      "ok": 1,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  },
+  "login": {
+    "2026-11-25": {
+      "feitas": 113,
+      "ok": 113,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-26": {
+      "feitas": 285,
+      "ok": 285,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-27": {
+      "feitas": 284,
+      "ok": 284,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-28": {
+      "feitas": 1,
+      "ok": 1,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  },
+  "banco": {
+    "2026-11-25": {
+      "feitas": 113,
+      "ok": 113,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-26": {
+      "feitas": 285,
+      "ok": 285,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-27": {
+      "feitas": 284,
+      "ok": 284,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-28": {
+      "feitas": 1,
+      "ok": 1,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  },
+  "satelite": {
+    "2026-11-25": {
+      "feitas": 6,
+      "ok": 6,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-26": {
+      "feitas": 13,
+      "ok": 13,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    },
+    "2026-11-27": {
+      "feitas": 12,
+      "ok": 12,
+      "degradado": 0,
+      "fora": 0,
+      "minutos_fora": 0
+    }
+  }
+}
